@@ -16,9 +16,10 @@ interface DiceRollerProps {
   diceType: DiceType;
   onRollComplete: (result: number) => void;
   disabled?: boolean;
+  autoRoll?: boolean;
 }
 
-export function DiceRoller({ diceType, onRollComplete, disabled }: DiceRollerProps) {
+export function DiceRoller({ diceType, onRollComplete, disabled, autoRoll }: DiceRollerProps) {
   const [isRolling, setIsRolling] = useState(false);
   const [rollKey, setRollKey] = useState(0);
   const [displayedResult, setDisplayedResult] = useState<number | null>(null);
@@ -46,8 +47,9 @@ export function DiceRoller({ diceType, onRollComplete, disabled }: DiceRollerPro
     }, 600);
   }, [onRollComplete]);
 
-  const handleClick = useCallback(() => {
-    if (disabled || isRolling || displayedResult !== null) return;
+  // Core roll logic — shared by manual click and auto-roll
+  const startRoll = useCallback(() => {
+    if (isRolling || displayedResult !== null) return;
 
     soundEngine.diceRoll();
     setIsRolling(true);
@@ -57,7 +59,6 @@ export function DiceRoller({ diceType, onRollComplete, disabled }: DiceRollerPro
     setRollKey(prev => prev + 1);
 
     // Fallback timeout: if physics doesn't settle in 4 seconds, force resolve
-    // Uses rollDice() as emergency value since we can't read the physics face from here
     const fallbackResult = rollDice(diceType);
     timeoutRef.current = setTimeout(() => {
       setIsSettled(true);
@@ -67,7 +68,20 @@ export function DiceRoller({ diceType, onRollComplete, disabled }: DiceRollerPro
         onRollComplete(fallbackResult);
       }, 300);
     }, 4000);
-  }, [disabled, isRolling, displayedResult, diceType, onRollComplete]);
+  }, [isRolling, displayedResult, diceType, onRollComplete]);
+
+  const handleClick = useCallback(() => {
+    if (disabled) return;
+    startRoll();
+  }, [disabled, startRoll]);
+
+  // Auto-roll for AI players
+  useEffect(() => {
+    if (autoRoll && !isRolling && displayedResult === null) {
+      const timer = setTimeout(() => startRoll(), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [autoRoll, isRolling, displayedResult, startRoll]);
 
   // Cleanup timeout on unmount
   useEffect(() => {

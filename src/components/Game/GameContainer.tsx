@@ -12,7 +12,7 @@ import { VictoryScreen } from './VictoryScreen';
 import { MinigameRouter } from '../Minigames/MinigameRouter';
 import { RulesModal, useRulesModal } from '../UI/RulesModal';
 import { SquareInfoModal, useSquareInfoModal } from '../UI/SquareInfoModal';
-import { rollDice, rollGaussianDetailed, selectRandomDice } from '../../utils/diceLogic';
+import { rollGaussianDetailed } from '../../utils/diceLogic';
 import type { DiceType } from '../../types/game';
 import { getZoneIndex } from '../Board3D/zoneConfig';
 
@@ -121,34 +121,19 @@ export function GameContainer() {
   };
 
   // AI auto-play for rolling phase
+  // DiceSelector (autoSpin) and DiceRoller (autoRoll) handle dice selection + rolling visually.
+  // This effect only handles: gaussian die auto-complete + auto-move after roll result.
   useEffect(() => {
     if (phase === 'rolling' && isAI) {
-      // AI selects dice (uses random selection like before)
-      if (!selectedDice) {
-        const timer = setTimeout(() => {
-          const randomDice = selectRandomDice();
-          setSelectedDice(randomDice);
-        }, 1200);
-        return () => clearTimeout(timer);
-      }
-      // AI rolls dice (skip if gaussian - handled separately)
-      if (selectedDice && selectedDice !== 'gaussian' && lastRoll === null) {
-        const timer = setTimeout(() => {
-          const result = rollDice(selectedDice);
-          setRollResult(result);
-        }, 1500);
-        return () => clearTimeout(timer);
-      }
-      // AI handles Gaussian die
+      // AI handles Gaussian die (has its own UI, just auto-complete it)
       if (selectedDice === 'gaussian' && showGaussianRoller && lastRoll === null) {
         const timer = setTimeout(() => {
-          // AI just gets a random gaussian result
           const result = rollGaussianDetailed();
           handleGaussianComplete(result.finalResult);
         }, 2000);
         return () => clearTimeout(timer);
       }
-      // AI continues after seeing roll
+      // AI continues after seeing roll result
       if (lastRoll !== null) {
         const timer = setTimeout(() => {
           setShowingRoll(false);
@@ -157,7 +142,7 @@ export function GameContainer() {
         return () => clearTimeout(timer);
       }
     }
-  }, [phase, isAI, selectedDice, lastRoll, showGaussianRoller, setSelectedDice, movePlayer]);
+  }, [phase, isAI, selectedDice, lastRoll, showGaussianRoller, movePlayer]);
 
   // Auto-move after moving phase starts - execute the actual move after hop animation finishes
   useEffect(() => {
@@ -245,10 +230,10 @@ export function GameContainer() {
     <>
       {phase === 'rolling' && (
         <>
-          {!selectedDice && !isAI && (
+          {!selectedDice && (
             <DiceSelector
               onSelect={(dice: DiceType) => setSelectedDice(dice)}
-              disabled={isAI}
+              autoSpin={isAI}
             />
           )}
 
@@ -274,6 +259,7 @@ export function GameContainer() {
               diceType={selectedDice}
               onRollComplete={setRollResult}
               disabled={isAI}
+              autoRoll={isAI}
             />
           )}
 
@@ -297,37 +283,6 @@ export function GameContainer() {
               <p className="text-[var(--color-text-secondary)]" style={{ fontFamily: "'Quicksand', sans-serif" }}>
                 You rolled a {lastRoll}!
               </p>
-            </motion.div>
-          )}
-
-          {!selectedDice && isAI && (
-            <motion.div
-              className="text-center p-8 rounded-3xl"
-              style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-              }}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-            >
-              <motion.div
-                className="w-16 h-16 mx-auto mb-4 rounded-xl flex items-center justify-center"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                }}
-                animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 0.5, repeat: Infinity }}
-              >
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" style={{ color: '#c678dd' }}>
-                  <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
-                  <circle cx="9" cy="10" r="2" fill="currentColor" />
-                  <circle cx="15" cy="10" r="2" fill="currentColor" />
-                  <path d="M8 15h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </motion.div>
-              <p className="text-[var(--color-text-secondary)] font-display font-medium">{currentPlayer?.name} is selecting a die...</p>
             </motion.div>
           )}
 

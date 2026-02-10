@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { DiceType } from '../../types/game';
 import { DICE_CONFIG } from '../../utils/diceLogic';
@@ -6,17 +6,18 @@ import { DICE_CONFIG } from '../../utils/diceLogic';
 interface DiceSelectorProps {
   onSelect: (dice: DiceType) => void;
   disabled?: boolean;
+  autoSpin?: boolean;
 }
 
 const DICE_ORDER: DiceType[] = ['d4', 'd6', 'd8', 'd10', 'prime', 'gaussian'];
 
-export function DiceSelector({ onSelect, disabled }: DiceSelectorProps) {
+export function DiceSelector({ onSelect, disabled, autoSpin }: DiceSelectorProps) {
   const [isSpinning, setIsSpinning] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [finalDice, setFinalDice] = useState<DiceType | null>(null);
 
-  const spin = useCallback(() => {
-    if (disabled || isSpinning) return;
+  const startSpin = useCallback(() => {
+    if (isSpinning || finalDice) return;
 
     setIsSpinning(true);
     setFinalDice(null);
@@ -49,7 +50,20 @@ export function DiceSelector({ onSelect, disabled }: DiceSelectorProps) {
     }, 80);
 
     return () => clearInterval(interval);
-  }, [disabled, isSpinning, onSelect]);
+  }, [isSpinning, finalDice, onSelect]);
+
+  const spin = useCallback(() => {
+    if (disabled) return;
+    startSpin();
+  }, [disabled, startSpin]);
+
+  // Auto-spin for AI players
+  useEffect(() => {
+    if (autoSpin && !isSpinning && !finalDice) {
+      const timer = setTimeout(() => startSpin(), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [autoSpin, isSpinning, finalDice, startSpin]);
 
   const currentDice = DICE_ORDER[currentIndex];
   const config = DICE_CONFIG[currentDice];
