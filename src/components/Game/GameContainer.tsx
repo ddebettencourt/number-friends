@@ -206,11 +206,19 @@ export function GameContainer() {
     if (phase === 'end_turn' && isAI) {
       if (waitingForMinigameAnim && !hopAnimationDone) return; // wait for animation
       const timer = setTimeout(() => {
-        endTurn();
+        handleEndTurn();
       }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [phase, isAI, endTurn, waitingForMinigameAnim, hopAnimationDone]);
+  }, [phase, isAI, handleEndTurn, waitingForMinigameAnim, hopAnimationDone]);
+
+  // Wrap endTurn to clear movePath synchronously — prevents the new player
+  // from briefly inheriting the previous player's movePath during the first render.
+  const handleEndTurn = useCallback(() => {
+    setMovePath([]);
+    setHopAnimationDone(false);
+    endTurn();
+  }, [endTurn]);
 
   const handleContinueAfterRoll = () => {
     setShowingRoll(false);
@@ -339,7 +347,7 @@ export function GameContainer() {
             background: 'linear-gradient(135deg, #c678dd 0%, #ff6b9d 100%)',
             boxShadow: '0 0 25px rgba(198, 120, 221, 0.5)',
           }}
-          onClick={endTurn}
+          onClick={handleEndTurn}
           initial={{ scale: 0, rotate: -10 }}
           animate={{ scale: 1, rotate: 0 }}
           whileHover={{ scale: 1.05, y: -2, boxShadow: '0 0 35px rgba(198, 120, 221, 0.7)' }}
