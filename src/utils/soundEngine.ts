@@ -30,13 +30,15 @@ class SoundEngine {
   private musicVolume: number = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 0.15 : 0.35;
   private currentMusic: HTMLAudioElement | null = null;
   private currentMusicTrack: MusicTrack | null = null;
-  private musicFadeInterval: ReturnType<typeof setInterval> | null = null;
+  private musicFadeInInterval: ReturnType<typeof setInterval> | null = null;
   private pendingMusicTrack: MusicTrack | null = null;
   private interactionListenerAdded: boolean = false;
 
-  // Track fade-out separately so it can be cancelled
-  private fadeOutAudio: HTMLAudioElement | null = null;
-  private fadeOutInterval: ReturnType<typeof setInterval> | null = null;
+  // Track ALL active fade-outs so they can be cancelled / cleaned up
+  private activeFadeOuts: Set<ReturnType<typeof setInterval>> = new Set();
+
+  // Self-rescue: periodic check that only one track is audible
+  private rescueInterval: ReturnType<typeof setInterval> | null = null;
 
   // Cache of loaded Audio elements so tracks resume instead of restarting
   private musicCache: Map<MusicTrack, HTMLAudioElement> = new Map();
@@ -105,8 +107,8 @@ class SoundEngine {
       return;
     }
 
-    // Pause (don't destroy) current music so it can be resumed later
-    this.pauseCurrentMusic();
+    // Crossfade: fade out old track while fading in new one
+    this.fadeOutCurrentMusic();
 
     this.currentMusicTrack = track;
     if (!this.musicEnabled || !this.enabled) return;
@@ -126,20 +128,10 @@ class SoundEngine {
     audio.play().then(() => {
       this.pendingMusicTrack = null;
       if (fadeIn) {
-        // Fade in over 2 seconds
-        let vol = audio!.volume;
-        const targetVol = this.musicVolume;
-        const step = targetVol / 40; // 40 steps over 2s
-        this.musicFadeInterval = setInterval(() => {
-          vol += step;
-          if (vol >= targetVol) {
-            vol = targetVol;
-            if (this.musicFadeInterval) clearInterval(this.musicFadeInterval);
-            this.musicFadeInterval = null;
-          }
-          if (this.currentMusic) this.currentMusic.volume = vol;
-        }, 50);
+        this.fadeInCurrentMusic(audio!);
       }
+      // Start self-rescue checks
+      this.startRescueTimer();
     }).catch(() => {
       // Autoplay blocked - remember the track and retry on first user interaction
       this.pendingMusicTrack = track;
@@ -148,46 +140,111 @@ class SoundEngine {
   }
 
   /**
-   * Pause the currently playing track (fade out briefly then pause).
-   * The Audio element stays in the cache so it can resume from the same position.
+   * Fade in the new track over 1 second (matched with fade-out duration for smooth crossfade).
    */
-  private pauseCurrentMusic(): void {
-    if (this.musicFadeInterval) {
-      clearInterval(this.musicFadeInterval);
-      this.musicFadeInterval = null;
+  private fadeInCurrentMusic(audio: HTMLAudioElement): void {
+    // Clear any existing fade-in
+    if (this.musicFadeInInterval) {
+      clearInterval(this.musicFadeInInterval);
+      this.musicFadeInInterval = null;
     }
 
-    // Kill any previously fading-out track immediately
-    if (this.fadeOutInterval) {
-      clearInterval(this.fadeOutInterval);
-      this.fadeOutInterval = null;
-    }
-    if (this.fadeOutAudio) {
-      this.fadeOutAudio.volume = 0;
-      this.fadeOutAudio.pause();
-      this.fadeOutAudio = null;
+    let vol = audio.volume;
+    const targetVol = this.musicVolume;
+    const step = targetVol / 20; // 20 steps * 50ms = 1 second
+
+    this.musicFadeInInterval = setInterval(() => {
+      vol += step;
+      if (vol >= targetVol) {
+        vol = targetVol;
+        if (this.musicFadeInInterval) clearInterval(this.musicFadeInInterval);
+        this.musicFadeInInterval = null;
+      }
+      // Only update if this is still the current track
+      if (this.currentMusic === audio) {
+        audio.volume = Math.min(vol, targetVol);
+      } else {
+        // Audio is no longer current — stop the fade-in
+        if (this.musicFadeInInterval) clearInterval(this.musicFadeInInterval);
+        this.musicFadeInInterval = null;
+      }
+    }, 50);
+  }
+
+  /**
+   * Fade out the currently playing track over 1 second then pause.
+   * The Audio element stays in the cache so it can resume from the same position.
+   * Each fade-out is tracked so it can be cleaned up.
+   */
+  private fadeOutCurrentMusic(): void {
+    // Clear any in-progress fade-in on the current track
+    if (this.musicFadeInInterval) {
+      clearInterval(this.musicFadeInInterval);
+      this.musicFadeInInterval = null;
     }
 
     if (this.currentMusic && !this.currentMusic.paused) {
       const audio = this.currentMusic;
-      this.fadeOutAudio = audio;
       let vol = audio.volume;
-      const step = Math.max(vol / 10, 0.01); // ensure step > 0
+      const step = Math.max(vol / 20, 0.005); // 20 steps * 50ms = 1 second, min step to avoid stalling
 
-      this.fadeOutInterval = setInterval(() => {
+      const intervalId = setInterval(() => {
         vol -= step;
         if (vol <= 0) {
           vol = 0;
-          if (this.fadeOutInterval) clearInterval(this.fadeOutInterval);
-          this.fadeOutInterval = null;
+          clearInterval(intervalId);
+          this.activeFadeOuts.delete(intervalId);
           audio.pause();
-          this.fadeOutAudio = null;
+          audio.volume = 0;
+        } else {
+          audio.volume = vol;
         }
-        audio.volume = Math.max(0, vol);
       }, 50);
+
+      this.activeFadeOuts.add(intervalId);
     }
 
     this.currentMusic = null;
+  }
+
+  /**
+   * Immediately silence and pause a specific audio element.
+   */
+  private killAudio(audio: HTMLAudioElement): void {
+    audio.volume = 0;
+    audio.pause();
+  }
+
+  /**
+   * Self-rescue: periodically checks that only the current track is playing.
+   * If any other cached track is found playing, it gets immediately silenced.
+   * Runs every 2 seconds while music is active.
+   */
+  private startRescueTimer(): void {
+    // Already running
+    if (this.rescueInterval) return;
+
+    this.rescueInterval = setInterval(() => {
+      // If no music should be playing, stop the timer
+      if (!this.currentMusic || !this.musicEnabled || !this.enabled) {
+        this.stopRescueTimer();
+        return;
+      }
+
+      // Check all cached tracks — silence anything that isn't the current track
+      this.musicCache.forEach((audio, _track) => {
+        if (audio !== this.currentMusic && !audio.paused) {
+          this.killAudio(audio);
+        }
+      });
+    }, 2000);
+  }
+
+  private stopRescueTimer(): void {
+    if (this.rescueInterval) {
+      clearInterval(this.rescueInterval);
+      this.rescueInterval = null;
+    }
   }
 
   private setupInteractionListener(): void {
@@ -216,34 +273,41 @@ class SoundEngine {
   }
 
   stopMusic(clearTrack: boolean = true): void {
-    if (this.musicFadeInterval) {
-      clearInterval(this.musicFadeInterval);
-      this.musicFadeInterval = null;
+    // Clear any active fade-in
+    if (this.musicFadeInInterval) {
+      clearInterval(this.musicFadeInInterval);
+      this.musicFadeInInterval = null;
     }
+
+    // Kill all active fade-outs immediately
+    this.activeFadeOuts.forEach((id) => clearInterval(id));
+    this.activeFadeOuts.clear();
 
     if (this.currentMusic) {
       // Fade out over 1 second then fully stop
       const audio = this.currentMusic;
       let vol = audio.volume;
-      const step = vol / 20; // 20 steps over 1s
+      const step = Math.max(vol / 20, 0.005);
 
-      const fadeOut = setInterval(() => {
+      const intervalId = setInterval(() => {
         vol -= step;
         if (vol <= 0) {
           vol = 0;
-          clearInterval(fadeOut);
+          clearInterval(intervalId);
+          this.activeFadeOuts.delete(intervalId);
           audio.pause();
-          // Full stop: reset position and remove from cache
           audio.currentTime = 0;
         }
         audio.volume = Math.max(0, vol);
       }, 50);
 
+      this.activeFadeOuts.add(intervalId);
       this.currentMusic = null;
     }
 
     if (clearTrack) {
       this.currentMusicTrack = null;
+      this.stopRescueTimer();
       // Clear the cache on full stop (e.g., game over) so tracks start fresh next game
       this.musicCache.forEach((audio) => {
         audio.pause();
