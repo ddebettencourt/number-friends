@@ -201,6 +201,14 @@ export function GameContainer() {
     }
   }, [phase, currentPlayer?.position]);
 
+  // Wrap endTurn to clear movePath synchronously — prevents the new player
+  // from briefly inheriting the previous player's movePath during the first render.
+  const handleEndTurn = useCallback(() => {
+    setMovePath([]);
+    setHopAnimationDone(false);
+    endTurn();
+  }, [endTurn]);
+
   // AI auto-end turn (wait for minigame animation in immersive mode)
   useEffect(() => {
     if (phase === 'end_turn' && isAI) {
@@ -211,14 +219,6 @@ export function GameContainer() {
       return () => clearTimeout(timer);
     }
   }, [phase, isAI, handleEndTurn, waitingForMinigameAnim, hopAnimationDone]);
-
-  // Wrap endTurn to clear movePath synchronously — prevents the new player
-  // from briefly inheriting the previous player's movePath during the first render.
-  const handleEndTurn = useCallback(() => {
-    setMovePath([]);
-    setHopAnimationDone(false);
-    endTurn();
-  }, [endTurn]);
 
   const handleContinueAfterRoll = () => {
     setShowingRoll(false);
