@@ -687,3 +687,16 @@ input::placeholder {
 .tutorial-pulse-glow {
   animation: tutorial-pulse-glow 2s ease-in-out infinite;
 }
+
+/* ============================================
+   MOBILE: disable backdrop-filter to prevent
+   flicker over WebGL canvas
+   ============================================ */
+@media (max-width: 640px) {
+  *,
+  *::before,
+  *::after {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
