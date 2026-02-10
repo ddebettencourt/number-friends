@@ -48,7 +48,7 @@ export function GameContainer() {
   const [showingRoll, setShowingRoll] = useState(false);
   const [showGaussianRoller, setShowGaussianRoller] = useState(false);
   const [movePath, setMovePath] = useState<number[]>([]);
-  const [boardMode, setBoardMode] = useState<BoardMode>('2d');
+  const [boardMode, setBoardMode] = useState<BoardMode>('immersive');
   const [hopAnimationDone, setHopAnimationDone] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(() => {
     const saved = localStorage.getItem('numberFriends_soundEnabled');
