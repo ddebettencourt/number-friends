@@ -140,44 +140,44 @@ class SoundEngine {
   }
 
   /**
-   * Fade in the new track over 1 second (matched with fade-out duration for smooth crossfade).
+   * Fade in the new track over ~3 seconds using an ease-in curve (slow start, accelerating).
+   * This sounds natural because the new track sneaks in quietly before reaching full volume.
    */
   private fadeInCurrentMusic(audio: HTMLAudioElement): void {
-    // Clear any existing fade-in
     if (this.musicFadeInInterval) {
       clearInterval(this.musicFadeInInterval);
       this.musicFadeInInterval = null;
     }
 
-    let vol = audio.volume;
     const targetVol = this.musicVolume;
-    const step = targetVol / 20; // 20 steps * 50ms = 1 second
+    const totalSteps = 60; // 60 steps * 50ms = 3 seconds
+    let step = 0;
 
     this.musicFadeInInterval = setInterval(() => {
-      vol += step;
-      if (vol >= targetVol) {
-        vol = targetVol;
+      step++;
+      if (step >= totalSteps) {
         if (this.musicFadeInInterval) clearInterval(this.musicFadeInInterval);
         this.musicFadeInInterval = null;
+        if (this.currentMusic === audio) audio.volume = targetVol;
+        return;
       }
       // Only update if this is still the current track
-      if (this.currentMusic === audio) {
-        audio.volume = Math.min(vol, targetVol);
-      } else {
-        // Audio is no longer current — stop the fade-in
+      if (this.currentMusic !== audio) {
         if (this.musicFadeInInterval) clearInterval(this.musicFadeInInterval);
         this.musicFadeInInterval = null;
+        return;
       }
+      // Ease-in curve: t^2 — quiet for longer, then rises to full
+      const t = step / totalSteps;
+      audio.volume = targetVol * t * t;
     }, 50);
   }
 
   /**
-   * Fade out the currently playing track over 1 second then pause.
-   * The Audio element stays in the cache so it can resume from the same position.
-   * Each fade-out is tracked so it can be cleaned up.
+   * Fade out the currently playing track over ~3 seconds using an ease-out curve (fast drop, slow tail).
+   * This sounds natural because the loud part drops quickly, then the quiet tail lingers.
    */
   private fadeOutCurrentMusic(): void {
-    // Clear any in-progress fade-in on the current track
     if (this.musicFadeInInterval) {
       clearInterval(this.musicFadeInInterval);
       this.musicFadeInInterval = null;
@@ -185,20 +185,22 @@ class SoundEngine {
 
     if (this.currentMusic && !this.currentMusic.paused) {
       const audio = this.currentMusic;
-      let vol = audio.volume;
-      const step = Math.max(vol / 20, 0.005); // 20 steps * 50ms = 1 second, min step to avoid stalling
+      const startVol = audio.volume;
+      const totalSteps = 60; // 60 steps * 50ms = 3 seconds
+      let step = 0;
 
       const intervalId = setInterval(() => {
-        vol -= step;
-        if (vol <= 0) {
-          vol = 0;
+        step++;
+        if (step >= totalSteps) {
           clearInterval(intervalId);
           this.activeFadeOuts.delete(intervalId);
-          audio.pause();
           audio.volume = 0;
-        } else {
-          audio.volume = vol;
+          audio.pause();
+          return;
         }
+        // Ease-out curve: (1 - t)^2 — drops fast at first, then tapers gently
+        const t = step / totalSteps;
+        audio.volume = startVol * (1 - t) * (1 - t);
       }, 50);
 
       this.activeFadeOuts.add(intervalId);
@@ -284,21 +286,24 @@ class SoundEngine {
     this.activeFadeOuts.clear();
 
     if (this.currentMusic) {
-      // Fade out over 1 second then fully stop
+      // Fade out over 2 seconds with ease-out curve, then fully stop
       const audio = this.currentMusic;
-      let vol = audio.volume;
-      const step = Math.max(vol / 20, 0.005);
+      const startVol = audio.volume;
+      const totalSteps = 40; // 40 steps * 50ms = 2 seconds
+      let step = 0;
 
       const intervalId = setInterval(() => {
-        vol -= step;
-        if (vol <= 0) {
-          vol = 0;
+        step++;
+        if (step >= totalSteps) {
           clearInterval(intervalId);
           this.activeFadeOuts.delete(intervalId);
+          audio.volume = 0;
           audio.pause();
           audio.currentTime = 0;
+          return;
         }
-        audio.volume = Math.max(0, vol);
+        const t = step / totalSteps;
+        audio.volume = startVol * (1 - t) * (1 - t);
       }, 50);
 
       this.activeFadeOuts.add(intervalId);
