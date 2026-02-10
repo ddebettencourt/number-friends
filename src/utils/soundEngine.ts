@@ -27,7 +27,7 @@ class SoundEngine {
 
   // Music playback
   private musicEnabled: boolean = true;
-  private musicVolume: number = 0.35;
+  private musicVolume: number = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 0.15 : 0.35;
   private currentMusic: HTMLAudioElement | null = null;
   private currentMusicTrack: MusicTrack | null = null;
   private musicFadeInterval: ReturnType<typeof setInterval> | null = null;

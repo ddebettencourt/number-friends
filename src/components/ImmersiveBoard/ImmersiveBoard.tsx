@@ -242,11 +242,11 @@ export function ImmersiveBoard({
         </div>
 
         {/* Bottom area - dice controls + player info */}
-        <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between p-3 gap-3">
-          {/* Current player info - bottom left */}
+        <div className="absolute bottom-0 left-0 right-0 flex items-end justify-center sm:justify-between p-3 gap-3">
+          {/* Current player info - bottom left (hidden on mobile to free space for dice) */}
           {activePlayer && (
             <div
-              className="pointer-events-auto flex items-center gap-2 px-3 py-2 rounded-xl"
+              className="pointer-events-auto hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl"
               style={{
                 background: 'rgba(0, 0, 0, 0.5)',
                 backdropFilter: 'blur(16px)',
@@ -278,8 +278,8 @@ export function ImmersiveBoard({
             {children}
           </div>
 
-          {/* Minimap - bottom right */}
-          <div className="pointer-events-auto">
+          {/* Minimap - bottom right (hidden on mobile) */}
+          <div className="pointer-events-auto hidden sm:block">
             <ImmersiveMinimap
               positions={pathPositions}
               players={players}
