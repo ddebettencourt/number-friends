@@ -690,7 +690,8 @@ input::placeholder {
 
 /* ============================================
    MOBILE: disable backdrop-filter to prevent
-   flicker over WebGL canvas
+   flicker over WebGL canvas, and darken
+   backgrounds to compensate for lost blur
    ============================================ */
 @media (max-width: 640px) {
   *,
@@ -698,5 +699,24 @@ input::placeholder {
   *::after {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
+  }
+
+  .glass-card,
+  .glass-strong {
+    background: rgba(15, 12, 35, 0.92) !important;
+  }
+
+  .glass-inset {
+    background: rgba(0, 0, 0, 0.5) !important;
+  }
+
+  .tutorial-backdrop {
+    background: rgba(10, 8, 28, 0.98) !important;
+  }
+
+  /* Inline-styled elements that used backdrop-filter + transparent bg:
+     target via the style attribute containing backdrop-filter */
+  [style*="backdrop-filter"] {
+    background: rgba(15, 12, 35, 0.88) !important;
   }
 }
