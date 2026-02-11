@@ -466,7 +466,7 @@ export function FactorFrenzy() {
           return (
             <motion.button
               key={num}
-              className={`aspect-square rounded-xl text-xl font-bold transition-all ${
+              className={`py-3 sm:py-4 rounded-xl text-xl font-bold transition-all ${
                 tapped
                   ? isCorrect
                     ? 'bg-green-500 text-white'

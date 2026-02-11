@@ -25,9 +25,12 @@ class SoundEngine {
   private enabled: boolean = true;
   private volume: number = 0.5;
 
+  // Mobile detection
+  private isMobile: boolean = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+
   // Music playback
   private musicEnabled: boolean = true;
-  private musicVolume: number = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) ? 0.15 : 0.35;
+  private musicVolume: number;
   private currentMusic: HTMLAudioElement | null = null;
   private currentMusicTrack: MusicTrack | null = null;
   private musicFadeInInterval: ReturnType<typeof setInterval> | null = null;
@@ -39,6 +42,14 @@ class SoundEngine {
 
   // Self-rescue: periodic check that only one track is audible
   private rescueInterval: ReturnType<typeof setInterval> | null = null;
+
+  // Mobile audio warmth filter: cuts harsh highs that sound tinny on phone speakers
+  private mobileFilter: BiquadFilterNode | null = null;
+  private mediaSourceNodes: Map<MusicTrack, MediaElementAudioSourceNode> = new Map();
+
+  constructor() {
+    this.musicVolume = this.isMobile ? 0.12 : 0.35;
+  }
 
   // Cache of loaded Audio elements so tracks resume instead of restarting
   private musicCache: Map<MusicTrack, HTMLAudioElement> = new Map();
@@ -119,6 +130,8 @@ class SoundEngine {
       audio = new Audio(path);
       audio.loop = true;
       this.musicCache.set(track, audio);
+      // On mobile, route through warmth filter to reduce tinny highs
+      this.routeThroughMobileFilter(audio, track);
     }
 
     // Set volume for fade-in or immediate
@@ -215,6 +228,45 @@ class SoundEngine {
   private killAudio(audio: HTMLAudioElement): void {
     audio.volume = 0;
     audio.pause();
+  }
+
+  /**
+   * On mobile, route music through Web Audio filters to reduce tinny/harsh sound.
+   * Applies a high-shelf cut (-4dB above 3kHz) and a low-shelf boost (+3dB below 300Hz)
+   * to warm up the sound on small phone speakers.
+   */
+  private routeThroughMobileFilter(audio: HTMLAudioElement, track: MusicTrack): void {
+    if (!this.isMobile) return;
+    if (this.mediaSourceNodes.has(track)) return;
+
+    try {
+      const ctx = this.getContext();
+      const source = ctx.createMediaElementSource(audio);
+      this.mediaSourceNodes.set(track, source);
+
+      // Create filter chain (only once, shared across all tracks)
+      if (!this.mobileFilter) {
+        // High-shelf: cut harsh highs
+        const highCut = ctx.createBiquadFilter();
+        highCut.type = 'highshelf';
+        highCut.frequency.value = 3000;
+        highCut.gain.value = -4;
+
+        // Low-shelf: boost warmth
+        const lowBoost = ctx.createBiquadFilter();
+        lowBoost.type = 'lowshelf';
+        lowBoost.frequency.value = 300;
+        lowBoost.gain.value = 3;
+
+        highCut.connect(lowBoost);
+        lowBoost.connect(ctx.destination);
+        this.mobileFilter = highCut;
+      }
+
+      source.connect(this.mobileFilter);
+    } catch {
+      // If createMediaElementSource fails (e.g., CORS), fall back to default output
+    }
   }
 
   /**

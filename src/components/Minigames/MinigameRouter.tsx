@@ -30,8 +30,8 @@ const MINIGAME_INFO: Record<MinigameType, { name: string; description: string; s
   final_showdown: { name: 'Final Showdown!', description: 'The ultimate math challenge!', stakes: 'Win: claim victory! | Lose: back to 95' },
 };
 
-// Minigames that handle their own AI (not auto-played by MinigameRouter)
-const SELF_HANDLING_MINIGAMES: MinigameType[] = ['prime_off', 'number_builder', 'prime_blackjack', 'root_race', 'cube_root', 'double_digits'];
+// Minigames that handle their own pass screen + AI (not auto-played by MinigameRouter)
+const SELF_HANDLING_MINIGAMES: MinigameType[] = ['prime_off', 'number_builder', 'prime_blackjack', 'root_race', 'cube_root', 'double_digits', 'factor_frenzy'];
 
 export function MinigameRouter({ minigame }: MinigameRouterProps) {
   const { players, currentPlayerIndex, isCurrentPlayerAI, getCurrentPlayerAIDifficulty, endMinigame } = useGameStore();
@@ -115,13 +115,13 @@ export function MinigameRouter({ minigame }: MinigameRouterProps) {
     const info = MINIGAME_INFO[minigame];
     return (
       <motion.div
-        className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/70 flex items-start justify-center z-50 p-4 overflow-y-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <motion.div
-          className="w-full max-w-lg"
+          className="w-full max-w-lg my-auto"
           initial={{ scale: 0.8, y: 50 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.8, y: 50 }}
@@ -142,7 +142,7 @@ export function MinigameRouter({ minigame }: MinigameRouterProps) {
   if (isAI && !selfHandlesAI) {
     return (
       <motion.div
-        className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+        className="fixed inset-0 bg-black/70 flex items-start justify-center z-50 p-4 overflow-y-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -202,13 +202,13 @@ export function MinigameRouter({ minigame }: MinigameRouterProps) {
 
   return (
     <motion.div
-      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/70 flex items-start justify-center z-50 p-4 overflow-y-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
       <motion.div
-        className="w-full max-w-lg"
+        className="w-full max-w-lg my-auto"
         initial={{ scale: 0.8, y: 50 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.8, y: 50 }}
