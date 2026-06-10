@@ -21,8 +21,8 @@ const SPECIAL_TYPE_INFO: Record<SpecialSquareType, {
 }> = {
   prime: {
     name: 'Prime Number',
-    color: '#61dafb',
-    glow: 'rgba(97, 218, 251, 0.4)',
+    color: '#3185FC',
+    glow: 'rgba(49, 133, 252, 0.4)',
     icon: '◆',
     description: 'A number divisible only by 1 and itself.',
     minigame: 'prime_off',
@@ -30,8 +30,8 @@ const SPECIAL_TYPE_INFO: Record<SpecialSquareType, {
   },
   twin_prime: {
     name: 'Twin Prime',
-    color: '#56d4c8',
-    glow: 'rgba(86, 212, 200, 0.4)',
+    color: '#4ECDC4',
+    glow: 'rgba(78, 205, 196, 0.4)',
     icon: '◆◆',
     description: 'One of a pair of primes that differ by 2 (e.g., 11 & 13).',
     minigame: 'prime_blackjack',
@@ -39,8 +39,8 @@ const SPECIAL_TYPE_INFO: Record<SpecialSquareType, {
   },
   multiple_of_10: {
     name: 'Multiple of 10',
-    color: '#ffd93d',
-    glow: 'rgba(255, 217, 61, 0.4)',
+    color: '#FFE66D',
+    glow: 'rgba(255, 230, 109, 0.4)',
     icon: '★',
     description: 'A number that ends in zero.',
     minigame: 'double_digits',
@@ -48,8 +48,8 @@ const SPECIAL_TYPE_INFO: Record<SpecialSquareType, {
   },
   fibonacci: {
     name: 'Fibonacci Number',
-    color: '#98ec65',
-    glow: 'rgba(152, 236, 101, 0.4)',
+    color: '#5FAD56',
+    glow: 'rgba(95, 173, 86, 0.4)',
     icon: '🌀',
     description: 'Part of the sequence where each number is the sum of the two before it.',
     minigame: 'sequence_savant',
@@ -57,8 +57,8 @@ const SPECIAL_TYPE_INFO: Record<SpecialSquareType, {
   },
   perfect_square: {
     name: 'Perfect Square',
-    color: '#c678dd',
-    glow: 'rgba(198, 120, 221, 0.4)',
+    color: '#9B59B6',
+    glow: 'rgba(155, 89, 182, 0.4)',
     icon: '□',
     description: 'A number that is the product of an integer with itself.',
     minigame: 'root_race',
@@ -66,8 +66,8 @@ const SPECIAL_TYPE_INFO: Record<SpecialSquareType, {
   },
   perfect_cube: {
     name: 'Perfect Cube',
-    color: '#ff9f43',
-    glow: 'rgba(255, 159, 67, 0.4)',
+    color: '#F9A03F',
+    glow: 'rgba(249, 160, 63, 0.4)',
     icon: '∛',
     description: 'A number that is the product of an integer multiplied by itself twice.',
     minigame: 'cube_root',
@@ -75,8 +75,8 @@ const SPECIAL_TYPE_INFO: Record<SpecialSquareType, {
   },
   perfect_number: {
     name: 'Perfect Number',
-    color: '#ff6b9d',
-    glow: 'rgba(255, 107, 157, 0.4)',
+    color: '#E84855',
+    glow: 'rgba(232, 72, 85, 0.4)',
     icon: '∞',
     description: 'A number that equals the sum of its proper divisors (6 = 1+2+3).',
     minigame: 'factor_frenzy',
@@ -84,8 +84,8 @@ const SPECIAL_TYPE_INFO: Record<SpecialSquareType, {
   },
   abundant: {
     name: 'Abundant Number',
-    color: '#56d4c8',
-    glow: 'rgba(86, 212, 200, 0.4)',
+    color: '#4ECDC4',
+    glow: 'rgba(78, 205, 196, 0.4)',
     icon: '+',
     description: 'A number where the sum of proper divisors exceeds the number.',
     minigame: 'number_builder',
@@ -106,10 +106,10 @@ export function SquareInfoModal({ isOpen, onClose, squareNumber }: SquareInfoMod
   const primaryColor = primaryType
     ? SPECIAL_TYPE_INFO[primaryType].color
     : isStart
-    ? '#98ec65'
+    ? '#5FAD56'
     : isEnd
-    ? '#ffd93d'
-    : '#c678dd';
+    ? '#FFE66D'
+    : '#9B59B6';
 
   return (
     <AnimatePresence>
@@ -117,7 +117,7 @@ export function SquareInfoModal({ isOpen, onClose, squareNumber }: SquareInfoMod
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-black/60 z-40"
+            className="modal-backdrop z-40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -132,14 +132,7 @@ export function SquareInfoModal({ isOpen, onClose, squareNumber }: SquareInfoMod
             exit={{ opacity: 0 }}
           >
             <motion.div
-              className="rounded-3xl p-6 max-w-sm w-full pointer-events-auto"
-              style={{
-                background: 'rgba(15, 10, 31, 0.95)',
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                boxShadow: `0 0 40px ${primaryColor}40, 0 8px 32px rgba(0, 0, 0, 0.5)`,
-              }}
+              className="modal-card p-5 sm:p-6 max-w-sm w-full max-h-[85dvh] overflow-y-auto pointer-events-auto"
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
@@ -147,40 +140,45 @@ export function SquareInfoModal({ isOpen, onClose, squareNumber }: SquareInfoMod
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header with square number */}
-              <div className="flex items-center gap-4 mb-4">
-                <div
-                  className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-display font-black"
-                  style={{
-                    background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}cc 100%)`,
-                    boxShadow: `0 0 25px ${primaryColor}60`,
-                    color: isEnd ? '#0f0a1f' : 'white',
-                  }}
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div className="flex items-center gap-4 min-w-0">
+                  <div
+                    className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-display font-black flex-shrink-0"
+                    style={{
+                      background: `linear-gradient(135deg, ${primaryColor} 0%, ${primaryColor}cc 100%)`,
+                      boxShadow: `0 0 25px ${primaryColor}60`,
+                      color: isEnd ? 'var(--color-text-on-light)' : 'white',
+                    }}
+                  >
+                    {squareNumber}
+                  </div>
+                  <div className="min-w-0">
+                    <h2 className="heading-2 text-[var(--color-text-primary)]">
+                      Square {squareNumber}
+                    </h2>
+                    {isStart && (
+                      <p className="font-display font-bold" style={{ color: 'var(--color-aurora-green)' }}>Start!</p>
+                    )}
+                    {isEnd && (
+                      <p className="font-display font-bold" style={{ color: 'var(--color-aurora-yellow)' }}>Finish Line!</p>
+                    )}
+                  </div>
+                </div>
+                <button
+                  onClick={onClose}
+                  className="btn-icon flex-shrink-0"
+                  aria-label="Close square info"
                 >
-                  {squareNumber}
-                </div>
-                <div>
-                  <h2 className="font-display text-2xl font-black text-[var(--color-text-primary)]">
-                    Square {squareNumber}
-                  </h2>
-                  {isStart && (
-                    <p className="font-display font-bold" style={{ color: '#98ec65' }}>Start!</p>
-                  )}
-                  {isEnd && (
-                    <p className="font-display font-bold" style={{ color: '#ffd93d' }}>Finish Line!</p>
-                  )}
-                </div>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
 
               {/* Players on this square */}
               {playersOnSquare.length > 0 && (
-                <div
-                  className="mb-4 p-3 rounded-xl"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                  }}
-                >
-                  <p className="text-xs text-[var(--color-text-muted)] mb-2 uppercase tracking-wide">Players here</p>
+                <div className="glass-inset mb-4 p-3">
+                  <p className="label-caps mb-2">Players here</p>
                   <div className="flex flex-wrap gap-2">
                     {playersOnSquare.map(p => (
                       <div
@@ -222,14 +220,8 @@ export function SquareInfoModal({ isOpen, onClose, squareNumber }: SquareInfoMod
                           {info.description}
                         </p>
                         {info.minigame && (
-                          <div
-                            className="rounded-lg p-3"
-                            style={{
-                              background: 'rgba(255, 255, 255, 0.05)',
-                              border: '1px solid rgba(255, 255, 255, 0.1)',
-                            }}
-                          >
-                            <p className="text-xs text-[var(--color-text-muted)] uppercase tracking-wide mb-1">
+                          <div className="glass-inset p-3">
+                            <p className="label-caps mb-1">
                               Minigame
                             </p>
                             <p className="text-sm font-medium text-[var(--color-text-primary)]">
@@ -245,12 +237,12 @@ export function SquareInfoModal({ isOpen, onClose, squareNumber }: SquareInfoMod
                 <div
                   className="p-4 rounded-xl"
                   style={{
-                    background: 'rgba(255, 217, 61, 0.1)',
-                    border: '1px solid rgba(255, 217, 61, 0.3)',
+                    background: 'rgba(255, 230, 109, 0.1)',
+                    border: '1px solid rgba(255, 230, 109, 0.3)',
                   }}
                 >
                   <p className="text-sm text-[var(--color-text-secondary)]">
-                    Land here to trigger the <strong style={{ color: '#ffd93d' }}>Final Showdown!</strong> Answer 3 random math questions to win.
+                    Land here to trigger the <strong style={{ color: 'var(--color-aurora-yellow)' }}>Final Showdown!</strong> Answer 3 random math questions to win.
                     Fail and you'll be sent back!
                   </p>
                 </div>
@@ -258,8 +250,8 @@ export function SquareInfoModal({ isOpen, onClose, squareNumber }: SquareInfoMod
                 <div
                   className="p-4 rounded-xl"
                   style={{
-                    background: 'rgba(152, 236, 101, 0.1)',
-                    border: '1px solid rgba(152, 236, 101, 0.3)',
+                    background: 'rgba(95, 173, 86, 0.1)',
+                    border: '1px solid rgba(95, 173, 86, 0.3)',
                   }}
                 >
                   <p className="text-sm text-[var(--color-text-secondary)]">
@@ -267,13 +259,7 @@ export function SquareInfoModal({ isOpen, onClose, squareNumber }: SquareInfoMod
                   </p>
                 </div>
               ) : (
-                <div
-                  className="p-4 rounded-xl"
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                  }}
-                >
+                <div className="glass-inset p-4">
                   <p className="text-sm text-[var(--color-text-muted)]">
                     A regular square with no special properties. Land here and end your turn normally.
                   </p>
@@ -281,19 +267,12 @@ export function SquareInfoModal({ isOpen, onClose, squareNumber }: SquareInfoMod
               )}
 
               {/* Close button */}
-              <motion.button
-                className="mt-4 w-full py-3 font-display font-bold rounded-xl"
-                style={{
-                  background: 'linear-gradient(135deg, #c678dd 0%, #ff6b9d 100%)',
-                  boxShadow: '0 0 20px rgba(198, 120, 221, 0.4)',
-                  color: 'white',
-                }}
+              <button
+                className="btn btn-purple mt-4 w-full"
                 onClick={onClose}
-                whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(198, 120, 221, 0.6)' }}
-                whileTap={{ scale: 0.98 }}
               >
                 Close
-              </motion.button>
+              </button>
             </motion.div>
           </motion.div>
         </>

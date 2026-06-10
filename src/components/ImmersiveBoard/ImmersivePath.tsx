@@ -25,12 +25,13 @@ export function ImmersivePath({ positions }: ImmersivePathProps) {
       );
 
       const curve = new THREE.CatmullRomCurve3(points);
-      const segments = Math.max(8, segPositions.length * 6);
-      const tubeGeometry = new THREE.TubeGeometry(curve, segments, 0.4, 8, false);
+      const segments = Math.max(8, segPositions.length * 8);
+      const tubeGeometry = new THREE.TubeGeometry(curve, segments, 0.42, 10, false);
 
       return {
         geometry: tubeGeometry,
         color: zone.pathColor,
+        emissive: zone.emissiveColor,
         key: zone.name,
       };
     });
@@ -41,11 +42,13 @@ export function ImmersivePath({ positions }: ImmersivePathProps) {
       {zoneTubes.map((tube) => {
         if (!tube) return null;
         return (
-          <mesh key={tube.key} geometry={tube.geometry}>
+          <mesh key={tube.key} geometry={tube.geometry} receiveShadow>
             <meshStandardMaterial
               color={tube.color}
-              roughness={0.8}
-              metalness={0.1}
+              emissive={tube.emissive}
+              emissiveIntensity={0.12}
+              roughness={0.7}
+              metalness={0.2}
             />
           </mesh>
         );

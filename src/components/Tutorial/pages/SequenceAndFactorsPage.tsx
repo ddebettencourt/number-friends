@@ -18,7 +18,7 @@ export function SequenceAndFactorsPage() {
   return (
     <div className="py-4">
       <motion.h3
-        className="text-lg text-[#FF6B9D] font-bold mb-3 text-center"
+        className="text-lg text-aurora-pink font-bold mb-3 text-center"
         style={{ fontFamily: 'var(--font-display)' }}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -45,7 +45,7 @@ export function SequenceAndFactorsPage() {
         <span className="text-white/50 text-sm" style={{ fontFamily: 'var(--font-body)' }}>
           Find all factors of{' '}
         </span>
-        <span className="text-2xl font-bold text-[#FF6B9D]" style={{ fontFamily: 'var(--font-display)' }}>
+        <span className="text-2xl font-bold text-aurora-pink" style={{ fontFamily: 'var(--font-display)' }}>
           28
         </span>
       </motion.div>
@@ -58,9 +58,9 @@ export function SequenceAndFactorsPage() {
                 className="w-12 h-12 rounded-lg flex items-center justify-center text-sm font-bold"
                 style={{
                   fontFamily: 'var(--font-display)',
-                  background: 'rgba(255, 107, 157, 0.2)',
-                  border: '1px solid rgba(255, 107, 157, 0.4)',
-                  color: '#FF6B9D',
+                  background: 'rgba(232, 72, 85, 0.2)',
+                  border: '1px solid rgba(232, 72, 85, 0.4)',
+                  color: 'var(--color-perfect-number)',
                 }}
                 initial={{ scale: 0, rotate: -20 }}
                 animate={{ scale: 1, rotate: 0 }}
@@ -83,7 +83,7 @@ export function SequenceAndFactorsPage() {
           {foundFactors < FACTORS_OF_28.length
             ? `Found ${foundFactors} factor${foundFactors > 1 ? 's' : ''}...`
             : (
-              <span className="text-green-400">
+              <span className="text-aurora-green">
                 All 6 factors found! +6 spaces
               </span>
             )}

@@ -16,8 +16,8 @@ const SPECIAL_TYPES: SpecialType[] = [
   {
     name: 'Prime',
     icon: 'P',
-    color: '#61DAFB',
-    glow: 'rgba(97, 218, 251, 0.4)',
+    color: '#3185FC',
+    glow: 'rgba(49, 133, 252, 0.4)',
     minigame: 'Prime-Off!',
     examples: [2, 3, 5, 7, 11, 13, 17],
     reward: 'Jump to next prime',
@@ -25,8 +25,8 @@ const SPECIAL_TYPES: SpecialType[] = [
   {
     name: 'Twin Prime',
     icon: 'TP',
-    color: '#56D4C8',
-    glow: 'rgba(86, 212, 200, 0.4)',
+    color: '#4ECDC4',
+    glow: 'rgba(78, 205, 196, 0.4)',
     minigame: 'Prime-Off or Blackjack',
     examples: [3, 5, 11, 13, 29, 31],
     reward: 'Jump to next prime',
@@ -43,8 +43,8 @@ const SPECIAL_TYPES: SpecialType[] = [
   {
     name: 'Perfect Square',
     icon: 'x\u00B2',
-    color: '#c678dd',
-    glow: 'rgba(198, 120, 221, 0.4)',
+    color: '#9B59B6',
+    glow: 'rgba(155, 89, 182, 0.4)',
     minigame: 'Root Race!',
     examples: [4, 9, 16, 25, 36],
     reward: '+3 spaces',
@@ -52,8 +52,8 @@ const SPECIAL_TYPES: SpecialType[] = [
   {
     name: 'Perfect Cube',
     icon: 'x\u00B3',
-    color: '#FF9F43',
-    glow: 'rgba(255, 159, 67, 0.4)',
+    color: '#F9A03F',
+    glow: 'rgba(249, 160, 63, 0.4)',
     minigame: 'Cube Root!',
     examples: [8, 27, 64],
     reward: '+3 spaces',
@@ -61,8 +61,8 @@ const SPECIAL_TYPES: SpecialType[] = [
   {
     name: 'Perfect Number',
     icon: '\u2605',
-    color: '#FF6B9D',
-    glow: 'rgba(255, 107, 157, 0.4)',
+    color: '#E84855',
+    glow: 'rgba(232, 72, 85, 0.4)',
     minigame: 'Factor Frenzy!',
     examples: [6, 28],
     reward: '+1 per factor found',
@@ -70,8 +70,8 @@ const SPECIAL_TYPES: SpecialType[] = [
   {
     name: 'Abundant',
     icon: '+',
-    color: '#56D4C8',
-    glow: 'rgba(86, 212, 200, 0.4)',
+    color: '#4ECDC4',
+    glow: 'rgba(78, 205, 196, 0.4)',
     minigame: 'Number Builder!',
     examples: [12, 18, 20, 24, 30],
     reward: 'Based on accuracy',
@@ -92,7 +92,7 @@ export function SpecialSquaresPage() {
         {SPECIAL_TYPES.map((sq, i) => (
           <motion.button
             key={sq.name}
-            className="relative rounded-xl p-2 text-center cursor-pointer"
+            className="relative rounded-xl p-2 min-h-[44px] text-center cursor-pointer"
             style={{
               background: `linear-gradient(135deg, ${sq.color}20, ${sq.color}08)`,
               border: `1px solid ${sq.color}40`,
@@ -146,7 +146,7 @@ export function SpecialSquaresPage() {
               Examples: {SPECIAL_TYPES[selected].examples.join(', ')}
             </div>
             <div className="text-xs mt-1" style={{ fontFamily: 'var(--font-body)' }}>
-              <span className="text-green-400">Win: </span>
+              <span className="text-aurora-green">Win: </span>
               <span className="text-white/70">{SPECIAL_TYPES[selected].reward}</span>
             </div>
           </motion.div>

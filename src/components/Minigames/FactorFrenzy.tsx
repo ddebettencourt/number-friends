@@ -41,6 +41,27 @@ interface PlayerResult {
 
 type Phase = 'pass' | 'playing' | 'ai_turn' | 'results';
 
+function TrophyIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M7 3h10v5a5 5 0 01-10 0V3z"
+        fill="var(--color-aurora-yellow)"
+        stroke="var(--color-aurora-yellow-deep)"
+        strokeWidth="1"
+      />
+      <path
+        d="M7 4H4a3 3 0 003 4M17 4h3a3 3 0 01-3 4"
+        stroke="var(--color-aurora-yellow)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path d="M12 13v4" stroke="var(--color-aurora-orange)" strokeWidth="2" strokeLinecap="round" />
+      <path d="M8.5 20a1 1 0 011-1h5a1 1 0 011 1v1h-7v-1z" fill="var(--color-aurora-orange)" />
+    </svg>
+  );
+}
+
 export function FactorFrenzy() {
   const { players, currentPlayerIndex, endMinigame, aiPlayers } = useGameStore();
   const triggeringPlayer = players[currentPlayerIndex];
@@ -295,17 +316,18 @@ export function FactorFrenzy() {
   // AI playing
   if (phase === 'ai_turn') {
     return (
-      <div className="game-card rounded-2xl p-6 shadow-2xl">
+      <div className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6">
         <div className="text-center mb-4">
-          <h2 className="text-2xl font-bold text-[var(--color-amethyst)]">Factor Frenzy!</h2>
-          <p className="text-[var(--color-text-secondary)]">AI is playing...</p>
+          <div className="label-caps mb-1">Minigame</div>
+          <h2 className="heading-2 text-aurora-purple">Factor Frenzy!</h2>
+          <p className="font-body text-[var(--color-text-secondary)]">AI is playing...</p>
         </div>
 
         <div className="text-center p-4 mb-4">
-          <div className="text-6xl font-black text-[var(--color-amethyst)] mb-2">
+          <div className="big-number text-aurora-purple mb-2">
             {target.number}
           </div>
-          <p className="text-[var(--color-text-muted)]">Find its factors!</p>
+          <p className="font-body text-[var(--color-text-muted)]">Find its factors!</p>
         </div>
 
         <motion.div
@@ -313,8 +335,8 @@ export function FactorFrenzy() {
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 1, repeat: Infinity }}
         >
-          <div className="w-16 h-16 mx-auto mb-4 rounded-xl wood-inset flex items-center justify-center">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-[var(--color-wood-medium)]">
+          <div className="w-16 h-16 mx-auto mb-4 glass-inset flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-[var(--color-text-muted)]">
               <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
               <circle cx="9" cy="10" r="2" fill="currentColor" />
               <circle cx="15" cy="10" r="2" fill="currentColor" />
@@ -329,6 +351,7 @@ export function FactorFrenzy() {
     );
   }
 
+
   // Results
   if (phase === 'results') {
     const sortedResults = [...playerResults].sort((a, b) => b.score - a.score);
@@ -336,13 +359,15 @@ export function FactorFrenzy() {
 
     return (
       <motion.div
-        className="game-card rounded-2xl p-4 sm:p-6 shadow-2xl"
-        initial={{ opacity: 0, scale: 0.9 }}
+        className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6 max-h-[90dvh] overflow-y-auto"
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 25 }}
       >
         <div className="text-center mb-4">
-          <h2 className="text-2xl font-bold text-[var(--color-amethyst)]">Results!</h2>
-          <p className="text-[var(--color-text-muted)]">
+          <div className="label-caps mb-1">Factor Frenzy</div>
+          <h2 className="heading-2 text-aurora-purple">Results!</h2>
+          <p className="font-body text-[var(--color-text-muted)]">
             Factors of {target.number}: {target.factors.join(', ')}
           </p>
         </div>
@@ -350,37 +375,39 @@ export function FactorFrenzy() {
         <div className="space-y-2 mb-4">
           {sortedResults.map((result, idx) => {
             const isWinner = idx === 0 && result.score > 0;
+            const playerColor = players.find(p => p.id === result.playerId)?.color;
             return (
               <motion.div
                 key={result.playerId}
                 className="p-3 rounded-xl"
-                style={
-                  isWinner
+                style={{
+                  ...(isWinner
                     ? {
-                        background: 'linear-gradient(135deg, rgba(255, 217, 61, 0.25) 0%, rgba(255, 159, 67, 0.15) 100%)',
-                        border: '2px solid rgba(255, 217, 61, 0.6)',
-                        boxShadow: '0 0 15px rgba(255, 217, 61, 0.3)',
+                        background: 'linear-gradient(135deg, rgba(255, 230, 109, 0.18) 0%, rgba(249, 160, 63, 0.12) 100%)',
+                        border: '1px solid rgba(255, 230, 109, 0.5)',
+                        boxShadow: '0 0 15px rgba(255, 230, 109, 0.2)',
                       }
                     : {
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                      }
-                }
+                        background: 'rgba(0, 0, 0, 0.25)',
+                        border: '1px solid rgba(255, 255, 255, 0.08)',
+                      }),
+                  borderLeft: `3px solid ${playerColor ?? 'rgba(255, 255, 255, 0.2)'}`,
+                }}
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: idx * 0.1 }}
+                transition={{ delay: idx * 0.1, type: 'spring', stiffness: 350, damping: 25 }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {isWinner && <span className="text-xl">🏆</span>}
-                    <span className="font-bold text-[var(--color-text-primary)]">{result.playerName}</span>
-                    {result.isAI && <span className="text-xs text-[var(--color-text-muted)]">AI</span>}
+                    {isWinner && <TrophyIcon />}
+                    <span className="font-body font-bold text-[var(--color-text-primary)]">{result.playerName}</span>
+                    {result.isAI && <span className="label-caps">AI</span>}
                   </div>
                   <div className="text-right">
-                    <div className="text-xl font-black text-[#c678dd]">
+                    <div className="font-display text-xl text-aurora-purple">
                       {result.score}
                     </div>
-                    <div className="text-xs text-[var(--color-text-muted)]">
+                    <div className="text-xs font-body text-[var(--color-text-muted)]">
                       {result.correct} correct, {result.wrong} wrong
                     </div>
                   </div>
@@ -392,62 +419,58 @@ export function FactorFrenzy() {
 
         <div className="text-center mb-4">
           {winner?.playerId === triggeringPlayer.id ? (
-            <p className="text-green-600 font-bold">
+            <p className="text-aurora-green font-body font-bold">
               You win! Advance {Math.max(1, Math.floor(winner.score / 15))} spaces!
             </p>
           ) : playerResults.find(r => r.playerId === triggeringPlayer.id)?.correct! >
              playerResults.find(r => r.playerId === triggeringPlayer.id)?.wrong! ? (
-            <p className="text-blue-600 font-bold">Nice try! Advance 1 space.</p>
+            <p className="text-aurora-blue font-body font-bold">Nice try! Advance 1 space.</p>
           ) : (
-            <p className="text-[var(--color-text-muted)]">You stay on your current square.</p>
+            <p className="font-body text-[var(--color-text-muted)]">You stay on your current square.</p>
           )}
         </div>
 
-        <motion.button
-          className="w-full py-3 piece-amethyst text-white font-bold rounded-xl"
-          onClick={handleContinue}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
+        <button className="btn btn-purple w-full" onClick={handleContinue}>
           Continue
-        </motion.button>
+        </button>
       </motion.div>
     );
   }
 
   // Playing phase
   return (
-    <div className="game-card rounded-2xl p-4 sm:p-6 shadow-2xl">
+    <div className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6">
       <div className="text-center mb-4">
-        <h2 className="text-2xl font-bold text-[var(--color-amethyst)]">Factor Frenzy!</h2>
-        <p className="text-[var(--color-text-secondary)]">Tap all divisors of the number!</p>
+        <div className="label-caps mb-1">Minigame</div>
+        <h2 className="heading-2 text-aurora-purple">Factor Frenzy!</h2>
+        <p className="font-body text-[var(--color-text-secondary)]">Tap all divisors of the number!</p>
       </div>
 
       {/* Current player indicator */}
       <div className="text-center mb-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full wood-inset">
-          <span className="font-bold text-[var(--color-text-primary)]">{activePlayer?.name}'s turn</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 glass-inset rounded-full">
+          <span className="font-body font-bold text-[var(--color-text-primary)]">{activePlayer?.name}'s turn</span>
         </div>
       </div>
 
       {/* Timer and target */}
       <div className="flex justify-between items-center mb-4">
         <motion.div
-          className={`text-3xl font-bold ${timeLeft <= 5 ? 'text-red-600' : 'text-[var(--color-text-primary)]'}`}
+          className={`font-display text-3xl ${timeLeft <= 5 ? 'text-aurora-pink' : 'text-[var(--color-text-primary)]'}`}
           animate={timeLeft <= 5 ? { scale: [1, 1.1, 1] } : {}}
           transition={{ duration: 0.5, repeat: timeLeft <= 5 ? Infinity : 0 }}
         >
           {timeLeft}s
         </motion.div>
-        <div className="text-5xl font-black text-[var(--color-amethyst)]">{target.number}</div>
-        <div className="text-xl font-bold text-green-600">+{activeResult?.score || 0}</div>
+        <div className="font-display text-5xl text-aurora-purple">{target.number}</div>
+        <div className="font-display text-xl text-aurora-green">+{activeResult?.score || 0}</div>
       </div>
 
       {/* Feedback */}
       <AnimatePresence>
         {lastTap && (
           <motion.div
-            className={`text-center text-lg font-bold mb-2 ${lastTap.correct ? 'text-green-500' : 'text-red-500'}`}
+            className={`text-center text-lg font-body font-bold mb-2 ${lastTap.correct ? 'text-aurora-green' : 'text-aurora-pink'}`}
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
@@ -458,7 +481,7 @@ export function FactorFrenzy() {
       </AnimatePresence>
 
       {/* Number grid */}
-      <div className="grid grid-cols-4 gap-2 mb-4">
+      <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mb-4">
         {grid.map((num) => {
           const tapped = tappedNumbers.has(num);
           const isCorrect = target.factors.includes(num);
@@ -466,12 +489,12 @@ export function FactorFrenzy() {
           return (
             <motion.button
               key={num}
-              className={`py-3 sm:py-4 rounded-xl text-xl font-bold transition-all ${
+              className={`min-h-[48px] py-3 sm:py-4 rounded-xl text-xl font-display transition-all ${
                 tapped
                   ? isCorrect
-                    ? 'bg-green-500 text-white'
-                    : 'bg-red-400 text-white'
-                  : 'wood-inset text-[var(--color-text-primary)] hover:bg-[var(--color-wood-light)]'
+                    ? 'bg-aurora-green text-white'
+                    : 'bg-aurora-pink text-white'
+                  : 'glass-inset text-[var(--color-text-primary)]'
               }`}
               onClick={() => handleTap(num)}
               disabled={tapped}
@@ -485,7 +508,7 @@ export function FactorFrenzy() {
       </div>
 
       {/* Progress */}
-      <div className="text-center text-sm text-[var(--color-text-muted)]">
+      <div className="text-center text-sm font-body text-[var(--color-text-muted)]">
         Found {activeResult?.correct || 0} of {target.factors.length} factors
       </div>
 
@@ -496,10 +519,10 @@ export function FactorFrenzy() {
             key={idx}
             className={`w-3 h-3 rounded-full ${
               idx < activePlayerIndex
-                ? 'bg-green-500'
+                ? 'bg-aurora-green'
                 : idx === activePlayerIndex
-                ? 'bg-[var(--color-amethyst)]'
-                : 'bg-gray-300'
+                ? 'bg-aurora-purple'
+                : 'bg-white/20'
             }`}
           />
         ))}

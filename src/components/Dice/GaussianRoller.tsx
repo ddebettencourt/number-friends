@@ -237,9 +237,15 @@ export function GaussianRoller({ onComplete, disabled }: GaussianRollerProps) {
 
   if (phase === 'ready') {
     return (
-      <div className="flex flex-col items-center gap-4">
+      <div className="flex flex-col items-center gap-4 max-w-full">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-gradient-to-br from-pink-400 to-rose-500 mb-3 shadow-lg">
+          <div
+            className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-3"
+            style={{
+              background: 'linear-gradient(135deg, var(--color-aurora-pink) 0%, var(--color-aurora-purple) 100%)',
+              boxShadow: '0 4px 0 var(--color-aurora-pink-deep), 0 8px 20px rgba(232, 72, 85, 0.35)',
+            }}
+          >
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-white">
               <circle cx="12" cy="4" r="2" fill="currentColor" />
               <circle cx="8" cy="8" r="1.5" fill="currentColor" opacity="0.7" />
@@ -250,22 +256,22 @@ export function GaussianRoller({ onComplete, disabled }: GaussianRollerProps) {
               <path d="M4 20h16v2H4z" fill="currentColor" opacity="0.3" />
             </svg>
           </div>
-          <h3 className="text-xl font-black bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">
+          <h3 className="text-2xl font-display tracking-wide text-gradient-pink">
             Gaussian Plinko
           </h3>
-          <p className="text-gray-500 text-sm mt-1">
+          <p className="text-[var(--color-text-secondary)] font-body text-sm mt-1">
             Drop the ball and watch it bounce!
           </p>
         </div>
 
         {/* Preview of distribution */}
-        <div className="bg-slate-100 rounded-xl p-3 text-center">
-          <div className="text-xs text-gray-500 mb-1">This roll's distribution</div>
+        <div className="glass-inset rounded-xl p-3 text-center">
+          <div className="label-caps mb-1">This roll's distribution</div>
           <div className="flex items-end justify-center gap-0.5 h-12">
             {slotHeights.map((height, idx) => (
               <div
                 key={idx}
-                className="w-5 bg-gradient-to-t from-pink-400 to-pink-300 rounded-t"
+                className="w-5 bg-gradient-to-t from-aurora-purple to-aurora-pink rounded-t"
                 style={{ height: `${height}px` }}
               />
             ))}
@@ -274,19 +280,19 @@ export function GaussianRoller({ onComplete, disabled }: GaussianRollerProps) {
             {slotValues.map((value, idx) => (
               <div
                 key={idx}
-                className="w-5 text-xs text-gray-600 font-bold"
+                className="w-5 text-xs font-display text-[var(--color-text-primary)]"
               >
                 {value}
               </div>
             ))}
           </div>
-          <div className="text-xs text-gray-400 mt-1">
+          <div className="text-xs font-body text-[var(--color-text-muted)] mt-1">
             Center: {gaussianParams.mean} | Spread: {gaussianParams.stdDev.toFixed(1)}
           </div>
         </div>
 
         <motion.button
-          className="px-8 py-4 bg-gradient-to-r from-pink-400 to-rose-500 text-white font-bold text-xl rounded-2xl shadow-lg"
+          className="btn btn-pink btn-lg"
           onClick={handleStart}
           disabled={disabled}
           whileHover={{ scale: disabled ? 1 : 1.05 }}
@@ -301,14 +307,20 @@ export function GaussianRoller({ onComplete, disabled }: GaussianRollerProps) {
   const slotWidth = BOARD_WIDTH / SLOT_COUNT;
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-4 max-w-full overflow-x-hidden">
       {/* Plinko board */}
       <div
-        className="relative bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl overflow-hidden shadow-2xl"
-        style={{ width: BOARD_WIDTH, height: BOARD_HEIGHT }}
+        className="relative rounded-2xl overflow-hidden max-w-full"
+        style={{
+          width: BOARD_WIDTH,
+          height: BOARD_HEIGHT,
+          background: 'linear-gradient(180deg, var(--color-nebula-mid) 0%, var(--color-void) 100%)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.4), 0 8px 28px rgba(0,0,0,0.35)',
+        }}
       >
         {/* Top funnel */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-8 bg-gradient-to-b from-slate-700 to-transparent"
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-8 bg-gradient-to-b from-[var(--color-nebula-light)] to-transparent"
           style={{
             clipPath: 'polygon(20% 0, 80% 0, 100% 100%, 0% 100%)',
           }}
@@ -318,7 +330,7 @@ export function GaussianRoller({ onComplete, disabled }: GaussianRollerProps) {
         {pegs.map((peg, idx) => (
           <div
             key={idx}
-            className="absolute rounded-full bg-gradient-to-br from-pink-400 to-pink-600 shadow-lg"
+            className="absolute rounded-full bg-gradient-to-br from-aurora-purple to-aurora-pink shadow-lg"
             style={{
               left: peg.x - PEG_RADIUS,
               top: peg.y - PEG_RADIUS,
@@ -332,7 +344,7 @@ export function GaussianRoller({ onComplete, disabled }: GaussianRollerProps) {
         {slotHeights.map((height, idx) => (
           <div
             key={idx}
-            className="absolute bg-gradient-to-t from-pink-500/30 to-transparent"
+            className="absolute bg-gradient-to-t from-aurora-pink/30 to-transparent"
             style={{
               left: idx * slotWidth,
               bottom: 0,
@@ -348,7 +360,7 @@ export function GaussianRoller({ onComplete, disabled }: GaussianRollerProps) {
         {Array.from({ length: SLOT_COUNT - 1 }).map((_, idx) => (
           <div
             key={idx}
-            className="absolute bg-slate-600"
+            className="absolute bg-white/15"
             style={{
               left: ((idx + 1) * BOARD_WIDTH) / SLOT_COUNT - 1,
               bottom: 0,
@@ -363,8 +375,8 @@ export function GaussianRoller({ onComplete, disabled }: GaussianRollerProps) {
           {slotValues.map((value, idx) => (
             <div
               key={idx}
-              className={`text-sm font-black text-center ${
-                finalSlotIndex === idx ? 'text-amber-300' : 'text-slate-300'
+              className={`text-sm font-display text-center ${
+                finalSlotIndex === idx ? 'text-aurora-yellow text-glow-gold' : 'text-white/60'
               }`}
               style={{ width: slotWidth }}
             >
@@ -376,7 +388,7 @@ export function GaussianRoller({ onComplete, disabled }: GaussianRollerProps) {
         {/* Ball */}
         {ball && (
           <motion.div
-            className="absolute rounded-full bg-gradient-to-br from-amber-300 to-orange-500 shadow-lg border-2 border-white/50"
+            className="absolute rounded-full bg-gradient-to-br from-aurora-yellow to-aurora-orange shadow-lg border-2 border-white/50"
             style={{
               left: ball.x - BALL_RADIUS,
               top: ball.y - BALL_RADIUS,
@@ -391,7 +403,7 @@ export function GaussianRoller({ onComplete, disabled }: GaussianRollerProps) {
         {/* Glow effect at bottom for result slot */}
         {phase === 'result' && finalSlotIndex !== null && (
           <motion.div
-            className="absolute bottom-0 bg-gradient-to-t from-amber-400/50 to-transparent"
+            className="absolute bottom-0 bg-gradient-to-t from-aurora-yellow/50 to-transparent"
             style={{
               left: finalSlotIndex * slotWidth,
               width: slotWidth,
@@ -410,9 +422,14 @@ export function GaussianRoller({ onComplete, disabled }: GaussianRollerProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <p className="text-gray-600 font-medium">You rolled:</p>
+          <p className="text-[var(--color-text-secondary)] font-body font-medium">You rolled:</p>
           <motion.div
-            className="w-20 h-20 bg-gradient-to-br from-pink-400 via-rose-500 to-pink-600 rounded-2xl flex items-center justify-center text-white text-4xl font-black shadow-xl"
+            className="w-20 h-20 rounded-2xl flex items-center justify-center text-white text-4xl font-display"
+            style={{
+              background: 'linear-gradient(135deg, var(--color-aurora-pink) 0%, var(--color-aurora-purple) 100%)',
+              boxShadow: '0 4px 0 var(--color-aurora-pink-deep), 0 0 25px rgba(232, 72, 85, 0.45)',
+              textShadow: '0 2px 4px rgba(0,0,0,0.35)',
+            }}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', bounce: 0.5 }}
@@ -420,7 +437,7 @@ export function GaussianRoller({ onComplete, disabled }: GaussianRollerProps) {
             {result}
           </motion.div>
           <motion.button
-            className="mt-2 px-8 py-3 bg-gradient-to-r from-pink-400 to-rose-500 text-white font-bold text-lg rounded-xl shadow-lg"
+            className="btn btn-pink mt-2"
             onClick={() => onComplete(result)}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -434,7 +451,7 @@ export function GaussianRoller({ onComplete, disabled }: GaussianRollerProps) {
       )}
 
       {phase === 'dropping' && (
-        <p className="text-gray-500 font-medium animate-pulse">Bouncing...</p>
+        <p className="text-[var(--color-text-muted)] font-body font-medium animate-pulse">Bouncing...</p>
       )}
     </div>
   );

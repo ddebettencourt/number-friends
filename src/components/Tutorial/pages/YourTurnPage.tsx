@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
 const DICE_NAMES = ['D4', 'D6', 'D8', 'D10', 'Prime', 'Gaussian'];
-const DICE_COLORS = ['#ef4444', '#3b82f6', '#22c55e', '#eab308', '#a855f7', '#ec4899'];
+const DICE_COLORS = ['#E84855', '#3185FC', '#5FAD56', '#FFE66D', '#9B59B6', '#4ECDC4'];
 
 export function YourTurnPage() {
   const [phase, setPhase] = useState<'spin' | 'rolled' | 'hopping' | 'done'>('spin');
@@ -24,7 +24,7 @@ export function YourTurnPage() {
     const stop = setTimeout(() => {
       clearInterval(interval);
       setSpinLabel('D6');
-      setSpinColor('#3b82f6');
+      setSpinColor('#3185FC');
       setPhase('rolled');
     }, 1800);
 
@@ -109,7 +109,7 @@ export function YourTurnPage() {
                 className="flex items-center gap-2"
               >
                 <span className="text-white/50 text-sm" style={{ fontFamily: 'var(--font-body)' }}>You rolled</span>
-                <span className="text-3xl font-bold text-[#FFE66D]" style={{ fontFamily: 'var(--font-display)' }}>4!</span>
+                <span className="text-3xl font-bold text-aurora-yellow" style={{ fontFamily: 'var(--font-display)' }}>4!</span>
               </motion.div>
             )}
           </div>
@@ -129,12 +129,12 @@ export function YourTurnPage() {
                   style={{
                     fontFamily: 'var(--font-display)',
                     background: i === pawnPos
-                      ? 'rgba(34,197,94,0.3)'
+                      ? 'rgba(95,173,86,0.3)'
                       : i > 0 && i < pawnPos
                       ? 'rgba(49,133,252,0.12)'
                       : 'rgba(255,255,255,0.08)',
                     border: i === pawnPos
-                      ? '2px solid #22c55e'
+                      ? '2px solid var(--color-aurora-green)'
                       : '1px solid rgba(255,255,255,0.15)',
                     color: 'rgba(255,255,255,0.6)',
                   }}
@@ -151,7 +151,7 @@ export function YourTurnPage() {
                     animate={{ y: [-15, 0], scale: [1.2, 1] }}
                     transition={{ duration: 0.3, ease: 'easeOut' }}
                   >
-                    <div className="w-6 h-6 rounded-full bg-[#E84855] flex items-center justify-center text-[10px]">
+                    <div className="w-6 h-6 rounded-full bg-aurora-pink flex items-center justify-center text-[10px]">
                       🎮
                     </div>
                   </motion.div>
@@ -163,7 +163,7 @@ export function YourTurnPage() {
 
         {phase === 'done' && (
           <motion.p
-            className="text-sm text-green-400 mt-1"
+            className="text-sm text-aurora-green mt-1"
             style={{ fontFamily: 'var(--font-body)' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

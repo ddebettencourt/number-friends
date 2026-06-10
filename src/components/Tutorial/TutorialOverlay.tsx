@@ -46,31 +46,31 @@ const PAGES: PageConfig[] = [
     component: SpecialSquaresPage,
     primoMessage: "There are 7 types of special squares, each tied to a different minigame. Win to advance, lose and you might slide back. Tap any type below for details.",
     primoMood: 'thinking',
-    primoColor: '#a855f7',
+    primoColor: '#9B59B6',
   },
   {
     component: PrimeGamesPage,
     primoMessage: "Land on a prime for Prime-Off — spot the shared prime between two grids before your opponent. Twin primes can also trigger Prime Blackjack: draw digit cards to build the highest prime sum under 100.",
     primoMood: 'happy',
-    primoColor: '#61DAFB',
+    primoColor: '#3185FC',
   },
   {
     component: DigitsAndRootsPage,
     primoMessage: "Multiples of 10 trigger Double Digits — roll two D10s and teleport to that number. High risk, high reward. Perfect squares start Root Race — solve the root to advance.",
     primoMood: 'thinking',
-    primoColor: '#eab308',
+    primoColor: '#FFE66D',
   },
   {
     component: SequenceAndFactorsPage,
     primoMessage: "Perfect numbers trigger Factor Frenzy — race to find all the factors before time runs out. Each correct factor earns you a bonus space.",
     primoMood: 'happy',
-    primoColor: '#FF6B9D',
+    primoColor: '#E84855',
   },
   {
     component: BuilderAndCubePage,
     primoMessage: "Abundant numbers start Number Builder — combine four numbers with basic operations to hit a target. Perfect cubes give you Cube Root — same concept, but cubed.",
     primoMood: 'thinking',
-    primoColor: '#FF9F43',
+    primoColor: '#F9A03F',
   },
   {
     component: CatchUpBouncePage,
@@ -137,8 +137,7 @@ export function TutorialOverlay({ onClose, onOpenRules }: TutorialOverlayProps) 
       {/* Skip button */}
       <div className="absolute top-4 right-4 z-10">
         <motion.button
-          className="text-white/40 hover:text-white/80 text-sm px-3 py-1 rounded-lg transition-colors"
-          style={{ fontFamily: 'var(--font-body)' }}
+          className="btn btn-ghost btn-sm"
           onClick={handleSkip}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -191,12 +190,11 @@ export function TutorialOverlay({ onClose, onOpenRules }: TutorialOverlayProps) 
       </div>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between px-6 pb-6 pt-2">
-        <div className="w-24">
+      <div className="flex items-center justify-between gap-2 px-4 sm:px-6 pb-6 pt-2">
+        <div className="flex-1">
           {currentPage > 0 && (
             <motion.button
-              className="text-white/60 hover:text-white text-sm flex items-center gap-1 px-4 py-2 rounded-xl"
-              style={{ fontFamily: 'var(--font-body)' }}
+              className="btn btn-ghost btn-sm"
               onClick={goBack}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -208,26 +206,19 @@ export function TutorialOverlay({ onClose, onOpenRules }: TutorialOverlayProps) 
           )}
         </div>
 
-        <div className="text-white/30 text-xs" style={{ fontFamily: 'var(--font-body)' }}>
+        <div className="text-xs flex-shrink-0" style={{ fontFamily: 'var(--font-body)', color: 'var(--color-text-muted)' }}>
           {currentPage + 1} / {PAGES.length}
         </div>
 
-        <div className="w-24 flex justify-end">
+        <div className="flex-1 flex justify-end">
           {isLastPage ? (
             <div className="flex flex-col items-end gap-1">
-              <motion.button
-                className="text-white font-bold px-6 py-2.5 rounded-xl"
-                style={{
-                  fontFamily: 'var(--font-display)',
-                  background: 'linear-gradient(135deg, #22c55e, #16a34a)',
-                  boxShadow: '0 4px 0 #15803d, 0 6px 20px rgba(34,197,94,0.3)',
-                }}
+              <button
+                className="btn btn-green"
                 onClick={handleFinish}
-                whileHover={{ y: -2, boxShadow: '0 6px 0 #15803d, 0 8px 24px rgba(34,197,94,0.4)' }}
-                whileTap={{ y: 2, boxShadow: '0 2px 0 #15803d' }}
               >
                 Let's Play!
-              </motion.button>
+              </button>
               {onOpenRules && (
                 <button
                   className="text-white/30 hover:text-white/60 text-xs underline transition-colors"
@@ -239,19 +230,12 @@ export function TutorialOverlay({ onClose, onOpenRules }: TutorialOverlayProps) 
               )}
             </div>
           ) : (
-            <motion.button
-              className="text-white font-bold px-6 py-2.5 rounded-xl"
-              style={{
-                fontFamily: 'var(--font-display)',
-                background: 'linear-gradient(135deg, #3185FC, #2563eb)',
-                boxShadow: '0 4px 0 #1d4ed8, 0 6px 20px rgba(49,133,252,0.3)',
-              }}
+            <button
+              className="btn btn-blue"
               onClick={goNext}
-              whileHover={{ y: -2, boxShadow: '0 6px 0 #1d4ed8, 0 8px 24px rgba(49,133,252,0.4)' }}
-              whileTap={{ y: 2, boxShadow: '0 2px 0 #1d4ed8' }}
             >
               Next &rarr;
-            </motion.button>
+            </button>
           )}
         </div>
       </div>

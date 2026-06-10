@@ -116,10 +116,10 @@ export function Dice3D({ diceType, value, isRolling, onRollComplete, onRollStart
   const faceColor = config.color;
 
   return (
-    <div className="flex flex-col items-center gap-4">
+    <div className="flex flex-col items-center gap-4 max-w-full">
       {/* 3D Dice Container */}
       <div
-        className="relative cursor-pointer"
+        className="relative cursor-pointer shrink-0"
         style={{
           width: size,
           height: size,
@@ -209,14 +209,22 @@ export function Dice3D({ diceType, value, isRolling, onRollComplete, onRollStart
       {/* Dice info */}
       <div className="text-center">
         <div
-          className="px-4 py-2 rounded-full font-bold text-white shadow-lg"
-          style={{ backgroundColor: faceColor }}
+          className="inline-block px-4 py-1.5 rounded-lg font-display text-white text-sm"
+          style={{
+            background: faceColor,
+            boxShadow: `0 3px 0 ${adjustColor(faceColor, -40)}, 0 0 15px ${faceColor}40`,
+            letterSpacing: '0.05em',
+          }}
         >
           {config.name}
         </div>
         {value !== null && !isRolling && (
           <motion.div
-            className="mt-2 text-2xl font-black text-gray-800"
+            className="mt-2 font-display text-3xl tracking-wide"
+            style={{
+              color: faceColor,
+              textShadow: `0 0 18px ${faceColor}90, 0 0 36px ${faceColor}50`,
+            }}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
           >
@@ -227,13 +235,21 @@ export function Dice3D({ diceType, value, isRolling, onRollComplete, onRollStart
 
       {/* Instructions */}
       {!isRolling && value === null && !disabled && (
-        <p className="text-gray-600 font-medium">Tap to roll!</p>
+        <p className="text-[var(--color-text-secondary)] font-body font-medium">Tap to roll!</p>
       )}
       {isRolling && (
-        <p className="text-gray-600 font-medium animate-pulse">Rolling...</p>
+        <p className="text-[var(--color-text-muted)] font-body font-medium animate-pulse">Rolling...</p>
       )}
     </div>
   );
+}
+
+function adjustColor(hex: string, amount: number): string {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = Math.min(255, Math.max(0, (num >> 16) + amount));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount));
+  const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount));
+  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
 }
 
 interface DiceFaceProps {
@@ -281,10 +297,10 @@ function DiceFace({ value, showPips, color, size, transform }: DiceFaceProps) {
       ) : (
         // Show number
         <span
-          className="font-black text-white"
+          className="font-display text-white"
           style={{
             fontSize: size * 0.5,
-            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+            textShadow: '0 2px 4px rgba(0,0,0,0.4)',
           }}
         >
           {value}

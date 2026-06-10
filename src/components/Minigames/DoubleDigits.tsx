@@ -144,16 +144,17 @@ export function DoubleDigits() {
   }
 
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-2xl">
+    <div className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6">
       {/* Header */}
       <div className="text-center mb-4">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-white text-3xl font-bold mb-2">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-aurora-yellow to-aurora-orange font-display text-3xl mb-2 text-[var(--color-text-on-light)]">
           10
         </div>
-        <h2 className="text-2xl font-black bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">
+        <div className="label-caps mb-1">Minigame</div>
+        <h2 className="heading-2 text-gradient-gold">
           Double Digits!
         </h2>
-        <p className="text-gray-500">
+        <p className="font-body text-[var(--color-text-secondary)]">
           Roll two d10s to teleport anywhere on the board!
         </p>
       </div>
@@ -164,31 +165,34 @@ export function DoubleDigits() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <div className="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 mb-6">
-            <p className="text-gray-700 mb-2">
-              You landed on <span className="font-bold text-amber-600">square {currentPlayer.position}</span>!
+          <div
+            className="rounded-2xl p-4 mb-6"
+            style={{ background: 'rgba(255, 230, 109, 0.12)', border: '1px solid rgba(255, 230, 109, 0.35)' }}
+          >
+            <p className="font-body text-[var(--color-text-primary)] mb-2">
+              You landed on <span className="font-bold text-aurora-yellow">square {currentPlayer.position}</span>!
             </p>
-            <p className="text-gray-600 text-sm">
+            <p className="font-body text-[var(--color-text-secondary)] text-sm">
               Roll two 10-sided dice to teleport. Each die is a digit (00 = 100).
             </p>
-            <p className="text-gray-500 text-xs mt-2">
+            <p className="font-body text-[var(--color-text-muted)] text-xs mt-2">
               Risky! You might end up further back...
             </p>
           </div>
 
           <div className="flex flex-col gap-3">
             <motion.button
-              className="px-8 py-4 bg-gradient-to-r from-amber-400 to-orange-500 text-white font-bold text-xl rounded-2xl shadow-lg"
+              className="btn btn-orange btn-lg"
               onClick={handleRoll}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
             >
               Roll the Dice!
             </motion.button>
             <motion.button
-              className="px-6 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl"
+              className="btn btn-ghost"
               onClick={handleSkip}
-              whileHover={{ scale: 1.02, backgroundColor: '#e5e7eb' }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
               No thanks, stay here
@@ -202,7 +206,7 @@ export function DoubleDigits() {
           {/* Dice display */}
           <div className="flex gap-4">
             <motion.div
-              className="w-24 h-24 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-white text-5xl font-black shadow-lg"
+              className="w-24 h-24 bg-gradient-to-br from-aurora-yellow to-aurora-orange rounded-2xl flex items-center justify-center text-[var(--color-text-on-light)] text-5xl font-display shadow-[0_5px_0_var(--color-aurora-orange-deep),0_8px_20px_rgba(249,160,63,0.35)]"
               animate={phase === 'rolling' ? {
                 scale: [1, 1.1, 1],
                 rotate: [0, 5, -5, 0]
@@ -215,7 +219,7 @@ export function DoubleDigits() {
               {displayDigit1}
             </motion.div>
             <motion.div
-              className="w-24 h-24 bg-gradient-to-br from-amber-400 to-orange-500 rounded-2xl flex items-center justify-center text-white text-5xl font-black shadow-lg"
+              className="w-24 h-24 bg-gradient-to-br from-aurora-yellow to-aurora-orange rounded-2xl flex items-center justify-center text-[var(--color-text-on-light)] text-5xl font-display shadow-[0_5px_0_var(--color-aurora-orange-deep),0_8px_20px_rgba(249,160,63,0.35)]"
               animate={phase === 'rolling' ? {
                 scale: [1, 1.1, 1],
                 rotate: [0, -5, 5, 0]
@@ -232,7 +236,7 @@ export function DoubleDigits() {
 
           {phase === 'rolling' && (
             <motion.p
-              className="text-gray-500 font-medium"
+              className="font-body text-[var(--color-text-secondary)] font-medium"
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 0.8, repeat: Infinity }}
             >
@@ -247,33 +251,33 @@ export function DoubleDigits() {
               animate={{ opacity: 1, y: 0 }}
             >
               <motion.div
-                className="text-5xl font-black bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent mb-2"
+                className="big-number text-gradient-gold mb-2"
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
-                transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                transition={{ type: 'spring', stiffness: 350, damping: 22 }}
               >
                 {result.result}!
               </motion.div>
-              <p className="text-gray-600 mb-4">
+              <p className="font-body text-[var(--color-text-secondary)] mb-4">
                 {result.result > currentPlayer.position ? (
-                  <span className="text-green-600 font-bold">
+                  <span className="text-aurora-green font-bold">
                     Jump forward {result.result - currentPlayer.position} spaces!
                   </span>
                 ) : result.result < currentPlayer.position ? (
-                  <span className="text-red-500 font-bold">
+                  <span className="text-aurora-pink font-bold">
                     Oops! Back {currentPlayer.position - result.result} spaces!
                   </span>
                 ) : (
-                  <span className="text-amber-600 font-bold">
+                  <span className="text-aurora-yellow font-bold">
                     You stay right here!
                   </span>
                 )}
               </p>
               <motion.button
-                className="px-8 py-3 bg-gradient-to-r from-amber-400 to-orange-500 text-white font-bold text-lg rounded-xl shadow-lg"
+                className="btn btn-orange"
                 onClick={handleContinue}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
               >
                 Teleport!
               </motion.button>

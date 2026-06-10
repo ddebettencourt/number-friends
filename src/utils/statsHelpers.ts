@@ -59,7 +59,7 @@ export function computeAwards(stats: GameStats, players: PlayerInfo[]): GameAwar
       }
     }
     if (bestPlayerId) {
-      makeAward('speed_demon', 'Speed Demon', 'Fastest prime identification', bestPlayerId, '⚡', `${bestTime.toFixed(1)}s`, '#61DAFB');
+      makeAward('speed_demon', 'Speed Demon', 'Fastest prime identification', bestPlayerId, '⚡', `${bestTime.toFixed(1)}s`, '#3185FC');
     }
   }
 
@@ -78,7 +78,7 @@ export function computeAwards(stats: GameStats, players: PlayerInfo[]): GameAwar
       }
     }
     if (bestPlayerId) {
-      makeAward('card_shark', 'Card Shark', 'Highest prime hand', bestPlayerId, '🃏', `${bestSum}`, '#56D4C8');
+      makeAward('card_shark', 'Card Shark', 'Highest prime hand', bestPlayerId, '🃏', `${bestSum}`, '#4ECDC4');
     }
   }
 
@@ -93,7 +93,7 @@ export function computeAwards(stats: GameStats, players: PlayerInfo[]): GameAwar
       }
     }
     if (bestPlayerId && bestRoll > 0) {
-      makeAward('lucky_roller', 'Lucky Roller', 'Highest single roll', bestPlayerId, '🎲', `${bestRoll}`, '#eab308');
+      makeAward('lucky_roller', 'Lucky Roller', 'Highest single roll', bestPlayerId, '🎲', `${bestRoll}`, '#FFE66D');
     }
   }
 
@@ -114,7 +114,7 @@ export function computeAwards(stats: GameStats, players: PlayerInfo[]): GameAwar
       }
     }
     if (bestPlayerId) {
-      makeAward('sharpshooter', 'Sharpshooter', 'Most accurate root guess', bestPlayerId, '🎯', label, '#c678dd');
+      makeAward('sharpshooter', 'Sharpshooter', 'Most accurate root guess', bestPlayerId, '🎯', label, '#9B59B6');
     }
   }
 
@@ -133,7 +133,7 @@ export function computeAwards(stats: GameStats, players: PlayerInfo[]): GameAwar
       }
     }
     if (bestPlayerId) {
-      makeAward('factor_machine', 'Factor Machine', 'Most factors found', bestPlayerId, '⚙️', `${bestCorrect} factors`, '#FF6B9D');
+      makeAward('factor_machine', 'Factor Machine', 'Most factors found', bestPlayerId, '⚙️', `${bestCorrect} factors`, '#E84855');
     }
   }
 
@@ -153,7 +153,7 @@ export function computeAwards(stats: GameStats, players: PlayerInfo[]): GameAwar
     }
     if (bestPlayerId && bestDiff < Infinity) {
       const label = bestDiff === 0 ? 'Exact hit' : `off by ${bestDiff}`;
-      makeAward('math_architect', 'Math Architect', 'Best number builder', bestPlayerId, '📐', label, '#FF9F43');
+      makeAward('math_architect', 'Math Architect', 'Best number builder', bestPlayerId, '📐', label, '#F9A03F');
     }
   }
 
@@ -210,7 +210,7 @@ export function computeAwards(stats: GameStats, players: PlayerInfo[]): GameAwar
       }
     }
     if (bestPlayerId && bestCount > 1) {
-      makeAward('dice_collector', 'Dice Collector', 'Most dice types used', bestPlayerId, '🎰', `${bestCount} types`, '#a855f7');
+      makeAward('dice_collector', 'Dice Collector', 'Most dice types used', bestPlayerId, '🎰', `${bestCount} types`, '#9B59B6');
     }
   }
 
@@ -259,7 +259,7 @@ export function computeAwards(stats: GameStats, players: PlayerInfo[]): GameAwar
       }
     }
     if (bestPlayerId) {
-      makeAward('sequence_sage', 'Sequence Sage', 'Fastest pattern solve', bestPlayerId, '🧩', `${bestTime.toFixed(1)}s`, '#98EC65');
+      makeAward('sequence_sage', 'Sequence Sage', 'Fastest pattern solve', bestPlayerId, '🧩', `${bestTime.toFixed(1)}s`, '#5FAD56');
     }
   }
 

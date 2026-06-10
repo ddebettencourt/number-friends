@@ -30,26 +30,17 @@ export function GameBoard({ players, onSquareClick, highlightedSquare, movePath 
       <div
         className="absolute -inset-4 rounded-[2.5rem] opacity-60 blur-xl"
         style={{
-          background: 'linear-gradient(135deg, rgba(198, 120, 221, 0.3) 0%, rgba(97, 218, 251, 0.3) 50%, rgba(152, 236, 101, 0.2) 100%)',
+          background: 'linear-gradient(135deg, rgba(155, 89, 182, 0.3) 0%, rgba(49, 133, 252, 0.3) 50%, rgba(95, 173, 86, 0.2) 100%)',
         }}
       />
 
       {/* Main board container - glass effect */}
-      <div
-        className="relative aspect-square rounded-3xl p-3 sm:p-4"
-        style={{
-          background: 'rgba(255, 255, 255, 0.05)',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.15)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-        }}
-      >
+      <div className="glass-card relative aspect-square rounded-3xl p-3 sm:p-4">
         {/* Corner accents - glowing orbs */}
-        <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-gradient-to-br from-[#ff6b9d] to-[#c678dd]" style={{ boxShadow: '0 0 15px rgba(255, 107, 157, 0.6)' }} />
-        <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-br from-[#61dafb] to-[#56d4c8]" style={{ boxShadow: '0 0 15px rgba(97, 218, 251, 0.6)' }} />
-        <div className="absolute -bottom-2 -left-2 w-6 h-6 rounded-full bg-gradient-to-br from-[#98ec65] to-[#56d4c8]" style={{ boxShadow: '0 0 15px rgba(152, 236, 101, 0.6)' }} />
-        <div className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-br from-[#c678dd] to-[#ff6b9d]" style={{ boxShadow: '0 0 15px rgba(198, 120, 221, 0.6)' }} />
+        <div className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-gradient-to-br from-aurora-pink to-aurora-purple" style={{ boxShadow: '0 0 15px rgba(232, 72, 85, 0.6)' }} />
+        <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-br from-aurora-blue to-aurora-cyan" style={{ boxShadow: '0 0 15px rgba(49, 133, 252, 0.6)' }} />
+        <div className="absolute -bottom-2 -left-2 w-6 h-6 rounded-full bg-gradient-to-br from-aurora-green to-aurora-cyan" style={{ boxShadow: '0 0 15px rgba(95, 173, 86, 0.6)' }} />
+        <div className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-gradient-to-br from-aurora-purple to-aurora-pink" style={{ boxShadow: '0 0 15px rgba(155, 89, 182, 0.6)' }} />
 
         {/* Inner decorative border */}
         <div

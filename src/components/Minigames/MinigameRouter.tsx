@@ -115,16 +115,17 @@ export function MinigameRouter({ minigame }: MinigameRouterProps) {
     const info = MINIGAME_INFO[minigame];
     return (
       <motion.div
-        className="fixed inset-0 bg-black/70 flex items-start justify-center z-50 p-4 overflow-y-auto"
+        className="fixed inset-0 minigame-backdrop flex items-start justify-center z-50 p-4 overflow-y-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <motion.div
           className="w-full max-w-lg my-auto"
-          initial={{ scale: 0.8, y: 50 }}
-          animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.8, y: 50 }}
+          initial={{ scale: 0.95, opacity: 0, y: 24 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 24 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
         >
           <PassToPlayer
             player={currentPlayer}
@@ -142,27 +143,29 @@ export function MinigameRouter({ minigame }: MinigameRouterProps) {
   if (isAI && !selfHandlesAI) {
     return (
       <motion.div
-        className="fixed inset-0 bg-black/70 flex items-start justify-center z-50 p-4 overflow-y-auto"
+        className="fixed inset-0 minigame-backdrop flex items-start justify-center z-50 p-4 overflow-y-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
         <motion.div
-          className="bg-white rounded-2xl p-8 shadow-2xl text-center"
-          initial={{ scale: 0.8, y: 50 }}
-          animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.8, y: 50 }}
+          className="glass-card w-full max-w-lg mx-auto my-auto p-4 sm:p-6 text-center"
+          initial={{ scale: 0.95, opacity: 0, y: 24 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 24 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 25 }}
         >
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gray-100 flex items-center justify-center">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-gray-600">
+          <div className="label-caps mb-1">{MINIGAME_INFO[minigame].name}</div>
+          <div className="glass-inset w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-aurora-cyan">
               <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
               <circle cx="9" cy="10" r="2" fill="currentColor" />
               <circle cx="15" cy="10" r="2" fill="currentColor" />
               <path d="M8 15h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">AI is playing...</h2>
-          <p className="text-gray-500">
+          <h2 className="heading-2 text-[var(--color-text-primary)] mb-2">AI is playing...</h2>
+          <p className="font-body text-[var(--color-text-secondary)]">
             {minigame === 'double_digits' && 'Rolling the dice...'}
             {minigame === 'root_race' && 'Calculating the square root...'}
             {minigame === 'cube_root' && 'Calculating the cube root...'}
@@ -202,16 +205,17 @@ export function MinigameRouter({ minigame }: MinigameRouterProps) {
 
   return (
     <motion.div
-      className="fixed inset-0 bg-black/70 flex items-start justify-center z-50 p-4 overflow-y-auto"
+      className="fixed inset-0 minigame-backdrop flex items-start justify-center z-50 p-4 overflow-y-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
       <motion.div
         className="w-full max-w-lg my-auto"
-        initial={{ scale: 0.8, y: 50 }}
-        animate={{ scale: 1, y: 0 }}
-        exit={{ scale: 0.8, y: 50 }}
+        initial={{ scale: 0.95, opacity: 0, y: 24 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0, y: 24 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 25 }}
       >
         {renderMinigame()}
       </motion.div>

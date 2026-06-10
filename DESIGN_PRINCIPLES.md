@@ -1,145 +1,101 @@
-# Number Friends Design Principles
+# Number Friends — Design System v2
 
-## Visual Identity
+*Rewritten June 2026 to match the actual code. The single source of truth is
+`src/index.css` — if this doc and the CSS disagree, trust the CSS.*
 
-### Color Palette
-- **Primary**: Amber/Orange gradient (#f59e0b to #ea580c) - used for CTAs, highlights, branding
-- **Secondary**: Slate/Gray (#1e293b to #f1f5f9) - used for backgrounds, text
-- **Accent Colors by Feature**:
-  - Red (#ef4444): D4 die, danger states
-  - Blue (#3b82f6): D6 die, Prime numbers
-  - Green (#22c55e): D8 die, success states
-  - Yellow (#eab308): D10 die, multiples of 10
-  - Purple (#a855f7): Prime die, perfect squares
-  - Pink (#ec4899): Gaussian die
-  - Teal (#14b8a6): Twin primes, abundant numbers
-  - Orange (#f97316): Perfect cubes
-  - Emerald (#10b981): Fibonacci
+## Visual identity
+
+Dark **nebula + glass** theme: deep navy/indigo gradient background with subtle
+film grain, translucent glassmorphism surfaces, and warm "toybox" accent colors.
+Playful family-game-night energy — bold but not childish. The immersive 3D board
+is the primary play mode; all UI is designed to sit as a HUD over WebGL.
+
+### Color tokens (defined in `@theme` — usable as Tailwind utilities)
+
+| Token | Hex | Tailwind utility | Typical use |
+|---|---|---|---|
+| `--color-aurora-pink` | `#E84855` | `bg-aurora-pink` | Primary CTAs, player 1, danger |
+| `--color-aurora-blue` | `#3185FC` | `bg-aurora-blue` | Player 2, primes, info |
+| `--color-aurora-cyan` | `#4ECDC4` | `bg-aurora-cyan` | Twin primes, focus rings |
+| `--color-aurora-green` | `#5FAD56` | `bg-aurora-green` | Player 3, Fibonacci, success |
+| `--color-aurora-yellow` | `#FFE66D` | `bg-aurora-yellow` | Multiples of 10, gold/victory |
+| `--color-aurora-orange` | `#F9A03F` | `bg-aurora-orange` | Player 4, perfect cubes |
+| `--color-aurora-purple` | `#9B59B6` | `bg-aurora-purple` | Perfect squares, end-turn |
+
+Each accent has a `-deep` variant (e.g. `--color-aurora-pink-deep`) used as the
+"pressed edge" of tactile buttons. Background depths: `--color-void`,
+`--color-nebula-deep/mid/light`. Text: `--color-text-primary/secondary/muted`
+and `--color-text-on-light` for dark text on yellow surfaces.
+
+Semantic square colors (`--color-prime`, `--color-twin-prime`, etc.) alias the
+aurora palette — use these in board/rules contexts.
+
+**Never hardcode palette hexes in components.** Player colors come from
+`player.color` data (which is set from the same palette).
 
 ### Typography
-- **Headings**: Bold/Black weight, gradient text for emphasis
-- **Body**: Medium weight, gray-700 for readability
-- **Numbers/Scores**: Black weight, large size for visibility
-- **Labels**: Small, uppercase, tracking-wide for UI elements
 
-### Iconography
-- **NO EMOJIS** in game UI - use custom SVG icons only
-- Icons should be simple, single-color, 24x24 base size
-- Use stroke-based icons for actions, filled for status
-- Mathematical symbols (√, ∛, +, ×) as decorative elements
+- `--font-display` (**Bangers**): hero numerals, buttons, big display moments.
+  Always add letter-spacing (~0.04em); class helpers do this for you.
+- `--font-title` (**Lilita One**): friendly headings, the game title.
+- `--font-body` (**Quicksand**): everything else.
 
-### Spacing & Layout
-- Consistent 4px base unit (p-1, p-2, p-4, p-6, p-8)
-- Rounded corners:
-  - Small elements: rounded-lg (8px)
-  - Cards/modals: rounded-2xl (16px)
-  - Large containers: rounded-3xl (24px)
-- Shadows:
-  - Interactive elements: shadow-lg
-  - Floating elements: shadow-2xl
-  - Subtle depth: shadow-md
+Helpers: `.heading-hero`, `.heading-1`, `.heading-2`, `.big-number` (all fluid
+via `clamp()`), `.label-caps` (small uppercase eyebrow labels),
+`.text-gradient-pink|cyan|gold|rainbow`.
 
-## Component Patterns
+No element should ever fall back to default sans-serif.
 
-### Buttons
-- Primary: Gradient background, white text, rounded-xl, shadow-lg
-- Secondary: Gray background, dark text
-- Hover: scale(1.02-1.05), slight y-lift
-- Active: scale(0.95-0.98)
-- Disabled: opacity-50, no hover effects
+## Surfaces
 
-### Cards
-- White/light background
-- Subtle border (border-gray-100)
-- Inner content with consistent padding (p-4 to p-6)
-- Top accent gradient for headers when needed
+- `.glass-card` — standard panel (24px radius). Add `.glass-card-interactive`
+  for hover lift on clickable cards.
+- `.glass-strong` — more opaque variant.
+- `.glass-inset` — recessed wells (input areas, stat boxes).
+- `.modal-card` + `.modal-backdrop` — modal sheets and overlays.
+- `.hud-panel` — immersive-mode HUD chips/panels (darker, less blur).
+- `.minigame-backdrop` — full-screen minigame overlay.
 
-### Modals/Overlays
-- Dark backdrop (bg-black/50 to bg-black/70)
-- Centered white card
-- Entry animation: scale from 0.9, fade in
-- Exit animation: scale to 0.9, fade out
+Banned: white/light card backgrounds (`bg-white`, Tailwind `*-50/*-100` tints).
+This is a dark-theme app; light feedback tints are expressed as translucent
+token rgba (e.g. `rgba(95,173,86,0.15)` bg + `0.4` border).
 
-### Dice Visuals
-- 3D appearance with CSS transforms
-- Proper geometric shapes (not all cubes!)
-  - D4: Tetrahedron
-  - D6: Cube with pips
-  - D8: Octahedron
-  - D10: Pentagonal trapezohedron
-  - Prime/Gaussian: Stylized cube with numbers
-- Realistic rolling animation
-- Show actual die values (not random cycling)
+## Buttons
 
-### Progress/Status Indicators
-- Circular progress: stroke-based SVG
-- Linear progress: gradient fill bars
-- Status dots: colored circles with subtle pulse
-- Timers: Large, bold numbers with warning color at low time
+`.btn` + a color: `.btn-pink|blue|cyan|green|purple|orange|yellow`.
+Sizes: `.btn-sm` (44px), default (48px), `.btn-lg` (56px).
+Quiet/secondary: `.btn-ghost`. Icon-only HUD: `.btn-icon` (44×44).
 
-## Animation Guidelines
+All are tactile "board-game piece" buttons: gradient face, solid deep-color
+pressed edge, translateY press. Don't hand-roll button gradients/shadows.
+`btn-yellow` automatically uses dark text.
 
-### Timing
-- Quick interactions: 150-200ms
-- Standard transitions: 300ms
-- Emphasis animations: 500ms
-- Complex sequences: 800-1500ms
+## Layout & responsiveness
 
-### Easing
-- Enter: ease-out
-- Exit: ease-in
-- Continuous: ease-in-out
-- Bouncy/playful: spring with bounce
+- Mobile-first. Cards: `w-full max-w-lg mx-auto p-4 sm:p-6`; tall content gets
+  `max-h-[90dvh] overflow-y-auto`. Use `dvh`, not `vh`.
+- Touch targets ≥44px. Grids that cramp at 375px: tighten gaps, never shrink
+  buttons below 44px.
+- Safe areas: `.hud-safe-top` / `.hud-safe-bottom` on immersive HUD edges.
+- Below 640px, `backdrop-filter` is globally disabled (WebGL flicker) and glass
+  surfaces switch to solid dark fills — defined once in index.css, don't
+  re-implement per component.
 
-### Motion Patterns
-- Scale up slightly on hover (1.02-1.08)
-- Lift up on hover (y: -2 to -4)
-- Pulse for attention (scale or opacity loop)
-- Rotate for loading/processing
-- Slide for page transitions
+## Motion
 
-## Game-Specific Guidelines
+framer-motion throughout. Entry: fade + scale from 0.92–0.95 (never from 0),
+springs ~stiffness 300–400 / damping 22–28. Quick interactions 150–200ms.
+Decorative loops must respect `prefers-reduced-motion` (the CSS keyframe
+helpers already do). Animation must never block interaction.
 
-### Board
-- Clear grid with visible square numbers
-- Special squares have distinct colors/icons
-- Player tokens clearly visible with shadows
-- Subtle highlight on current/target squares
+## Iconography
 
-### Dice Rolling
-- Spinner wheel: Clean segments, readable labels
-- Dice: Realistic 3D with proper face count
-- Results: Large, centered, with celebration animation
-
-### Minigames
-- Full-screen modal overlay
-- Clear instructions at top
-- Timer/progress visible
-- Large touch targets for mobile
-- Immediate feedback on actions
-- Results screen with rankings
-
-### Multiplayer
-- Player colors consistent throughout
-- Current player always highlighted
-- AI players marked but not distracting
-- Turn indicator always visible
+Inline stroke-based SVGs (24×24 viewBox) colored via `currentColor` or tokens.
+Decorative emoji in chrome are banned; **player avatar emoji are data** and
+always render as-is. Math symbols (√, ∛, ×) welcome as decoration.
 
 ## Accessibility
 
-- Minimum tap target: 44x44px
-- Color contrast: WCAG AA minimum
-- Don't rely on color alone for meaning
-- Readable font sizes (min 14px body, 12px labels)
-- Focus states for keyboard navigation
-
-## Anti-Patterns (What NOT to do)
-
-- NO random emojis scattered around
-- NO inconsistent border radius mixing
-- NO tiny click targets
-- NO animation that blocks interaction
-- NO pure black (#000) - use slate-900
-- NO pure white (#fff) backgrounds - use slight gray tint
-- NO generic dice cubes for non-cube dice
-- NO walls of text without hierarchy
+- `:focus-visible` shows a cyan outline globally — don't suppress it.
+- Icon-only buttons need `aria-label` + `title`.
+- WCAG AA contrast; don't rely on color alone.

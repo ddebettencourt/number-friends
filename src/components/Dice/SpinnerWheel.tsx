@@ -94,8 +94,7 @@ export function SpinnerWheel({ onSpinComplete, disabled }: SpinnerWheelProps) {
           <svg width="24" height="32" viewBox="0 0 24 32" className="drop-shadow-lg">
             <path
               d="M12 0 L24 28 L12 24 L0 28 Z"
-              fill="#1f2937"
-              stroke="#374151"
+              style={{ fill: 'var(--color-nebula-light)', stroke: 'rgba(255,255,255,0.35)' }}
               strokeWidth="1"
             />
           </svg>
@@ -105,8 +104,9 @@ export function SpinnerWheel({ onSpinComplete, disabled }: SpinnerWheelProps) {
         <div
           className="absolute -inset-2 rounded-full"
           style={{
-            background: 'linear-gradient(135deg, #374151 0%, #1f2937 100%)',
-            boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.1), 0 4px 12px rgba(0,0,0,0.3)',
+            background: 'linear-gradient(135deg, var(--color-nebula-light) 0%, var(--color-nebula-deep) 100%)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            boxShadow: 'inset 0 2px 4px rgba(255,255,255,0.1), 0 8px 28px rgba(0,0,0,0.35)',
           }}
         />
 
@@ -144,12 +144,12 @@ export function SpinnerWheel({ onSpinComplete, disabled }: SpinnerWheelProps) {
                 />
                 {/* Label */}
                 <div
-                  className="absolute font-bold text-white text-xs sm:text-sm"
+                  className="absolute font-display tracking-wide text-white text-xs sm:text-sm"
                   style={{
                     left: `${50 + labelRadius * Math.sin((labelAngle * Math.PI) / 180)}%`,
                     top: `${50 - labelRadius * Math.cos((labelAngle * Math.PI) / 180)}%`,
                     transform: 'translate(-50%, -50%)',
-                    textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+                    textShadow: '0 1px 3px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)',
                   }}
                 >
                   {config.name}
@@ -162,12 +162,13 @@ export function SpinnerWheel({ onSpinComplete, disabled }: SpinnerWheelProps) {
           <div
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center"
             style={{
-              background: 'linear-gradient(135deg, #f5f5f4 0%, #d6d3d1 100%)',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.8)',
+              background: 'linear-gradient(135deg, var(--color-nebula-light) 0%, var(--color-nebula-deep) 100%)',
+              border: '1px solid rgba(255,255,255,0.2)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.2)',
             }}
           >
             {/* Dice icon SVG */}
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-gray-700">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" className="text-white/80">
               <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" strokeWidth="2" />
               <circle cx="8" cy="8" r="1.5" fill="currentColor" />
               <circle cx="16" cy="8" r="1.5" fill="currentColor" />
@@ -186,7 +187,7 @@ export function SpinnerWheel({ onSpinComplete, disabled }: SpinnerWheelProps) {
           return (
             <div
               key={i}
-              className="absolute bg-gray-600"
+              className="absolute bg-white/25"
               style={{
                 width: '2px',
                 height: `${outerRadius - innerRadius}px`,
@@ -202,14 +203,7 @@ export function SpinnerWheel({ onSpinComplete, disabled }: SpinnerWheelProps) {
 
       {/* Spin button */}
       <motion.button
-        className={`px-8 py-3 rounded-xl font-bold text-lg transition-colors ${
-          isSpinning
-            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            : 'bg-gray-800 text-white hover:bg-gray-700 cursor-pointer'
-        }`}
-        style={{
-          boxShadow: isSpinning ? 'none' : '0 4px 12px rgba(0,0,0,0.2)',
-        }}
+        className="btn btn-pink"
         onClick={handleSpin}
         disabled={disabled || isSpinning}
         whileHover={!isSpinning && !disabled ? { scale: 1.02, y: -1 } : {}}
@@ -220,7 +214,7 @@ export function SpinnerWheel({ onSpinComplete, disabled }: SpinnerWheelProps) {
 
       {/* Instructions */}
       {!isSpinning && (
-        <p className="text-gray-500 text-sm text-center">
+        <p className="text-[var(--color-text-secondary)] font-body text-sm text-center">
           Spin to get your die
         </p>
       )}

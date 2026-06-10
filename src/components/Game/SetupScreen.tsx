@@ -14,8 +14,53 @@ interface SetupScreenProps {
 
 // Warm, toybox-inspired player colors
 const PLAYER_COLORS = ['#E84855', '#3185FC', '#5FAD56', '#F9A03F'];
+const PLAYER_SHADOWS = ['#9B1B30', '#0D4F9E', '#3D7A35', '#C67A1F'];
 const PLAYER_AVATARS = ['🎮', '🎪', '🎨', '🎭'];
 const AI_NAMES = ['Digit', 'Calc', 'Mathy', 'Primo'];
+
+// Small stroke-based icons (no emoji in chrome)
+function RobotIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="6" width="18" height="14" rx="3" />
+      <circle cx="9" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="15" cy="12" r="1.5" fill="currentColor" stroke="none" />
+      <path d="M9 16h6" />
+      <path d="M12 6V3" />
+      <circle cx="12" cy="2.5" r="0.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function PlayersIcon({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="9" cy="8" r="3.5" />
+      <path d="M2.5 20c0-3.5 3-5.5 6.5-5.5s6.5 2 6.5 5.5" />
+      <circle cx="17" cy="9" r="2.5" />
+      <path d="M16.5 14.5c2.8 0 5 1.7 5 4.5" />
+    </svg>
+  );
+}
+
+function BookIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    </svg>
+  );
+}
+
+function FlaskIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 2v6L4.5 18a2 2 0 0 0 1.8 3h11.4a2 2 0 0 0 1.8-3L14 8V2" />
+      <path d="M8.5 2h7" />
+      <path d="M7 15h10" />
+    </svg>
+  );
+}
 
 export function SetupScreen({ onStartGame }: SetupScreenProps) {
   const [gameMode, setGameMode] = useState<GameMode | null>(null);
@@ -60,23 +105,10 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
     return <TestMode onExit={() => setShowTestMode(false)} />;
   }
 
-  // Mode selection screen - Vintage Board Game Box aesthetic
+  // Mode selection screen — title page of the game box
   if (gameMode === null) {
     return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden"
-        style={{
-          background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
-        }}
-      >
-        {/* Subtle paper texture overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.03] pointer-events-none"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          }}
-        />
-
+      <div className="min-h-dvh flex flex-col items-center justify-center p-6 relative overflow-hidden">
         {/* The Main Title - Bold, Dimensional, Memorable */}
         <motion.div
           className="text-center mb-10 relative"
@@ -84,25 +116,24 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         >
-          {/* Main Title with dimensional shadow effect */}
-          <h1
-            className="relative"
-            style={{ fontFamily: "'Lilita One', 'Bangers', sans-serif" }}
-          >
-            {/* Title text with CSS text-shadow for 3D effect */}
+          <h1 className="relative" style={{ fontFamily: 'var(--font-title)' }}>
             <span
-              className="relative block text-7xl sm:text-8xl md:text-9xl tracking-wide"
+              className="relative block tracking-wide"
               style={{
-                color: '#FFE66D',
+                fontSize: 'clamp(3.5rem, 14vw, 7rem)',
+                lineHeight: 1.05,
+                color: 'var(--color-aurora-yellow)',
                 textShadow: '2px 2px 0 #2a2a5a, 4px 4px 0 #1a1a3a, 6px 6px 0 #0a0a0f, 0 0 60px rgba(255, 230, 109, 0.4)',
               }}
             >
               Number
             </span>
             <span
-              className="relative block text-7xl sm:text-8xl md:text-9xl tracking-wide"
+              className="relative block tracking-wide"
               style={{
-                color: '#4ECDC4',
+                fontSize: 'clamp(3.5rem, 14vw, 7rem)',
+                lineHeight: 1.05,
+                color: 'var(--color-aurora-cyan)',
                 textShadow: '2px 2px 0 #1a3a3a, 4px 4px 0 #0a2a2a, 6px 6px 0 #0a0a0f, 0 0 60px rgba(78, 205, 196, 0.4)',
               }}
             >
@@ -110,11 +141,10 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
             </span>
           </h1>
 
-          {/* Tagline - clean and understated */}
           <motion.p
-            className="mt-6 text-lg sm:text-xl tracking-widest uppercase font-semibold"
+            className="mt-6 text-base sm:text-xl font-semibold uppercase"
             style={{
-              fontFamily: "'Quicksand', sans-serif",
+              fontFamily: 'var(--font-body)',
               color: 'rgba(255, 255, 255, 0.6)',
               letterSpacing: '0.25em',
             }}
@@ -126,82 +156,52 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
           </motion.p>
         </motion.div>
 
-        {/* Game Mode Selection - clean, tactile buttons */}
+        {/* Game Mode Selection */}
         <motion.div
           className="w-full max-w-sm space-y-4"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
-          {/* Solo Play Button */}
           <motion.button
-            className="w-full py-5 rounded-2xl text-xl tracking-wide flex items-center justify-center gap-4 relative overflow-hidden"
-            style={{
-              fontFamily: "'Bangers', sans-serif",
-              background: 'linear-gradient(135deg, #E84855 0%, #D62839 100%)',
-              boxShadow: '0 6px 0 #9B1B30, 0 8px 20px rgba(232, 72, 85, 0.3)',
-              color: '#fff',
-              letterSpacing: '0.05em',
-            }}
+            className="btn btn-pink btn-lg w-full"
             onClick={() => setGameMode('solo')}
-            whileHover={{ y: -2, boxShadow: '0 8px 0 #9B1B30, 0 12px 30px rgba(232, 72, 85, 0.4)' }}
-            whileTap={{ y: 4, boxShadow: '0 2px 0 #9B1B30, 0 4px 10px rgba(232, 72, 85, 0.3)' }}
+            whileTap={{ scale: 0.98 }}
           >
-            <span className="text-2xl">🤖</span>
+            <RobotIcon />
             Play vs Computer
           </motion.button>
 
-          {/* Multiplayer Button */}
           <motion.button
-            className="w-full py-5 rounded-2xl text-xl tracking-wide flex items-center justify-center gap-4 relative overflow-hidden"
-            style={{
-              fontFamily: "'Bangers', sans-serif",
-              background: 'linear-gradient(135deg, #3185FC 0%, #1A6FE8 100%)',
-              boxShadow: '0 6px 0 #0D4F9E, 0 8px 20px rgba(49, 133, 252, 0.3)',
-              color: '#fff',
-              letterSpacing: '0.05em',
-            }}
+            className="btn btn-blue btn-lg w-full"
             onClick={() => setGameMode('local')}
-            whileHover={{ y: -2, boxShadow: '0 8px 0 #0D4F9E, 0 12px 30px rgba(49, 133, 252, 0.4)' }}
-            whileTap={{ y: 4, boxShadow: '0 2px 0 #0D4F9E, 0 4px 10px rgba(49, 133, 252, 0.3)' }}
+            whileTap={{ scale: 0.98 }}
           >
-            <span className="text-2xl">👥</span>
+            <PlayersIcon />
             2-4 Players
           </motion.button>
 
-          {/* How to Play - opens interactive tutorial */}
           <motion.button
-            className={`w-full py-4 rounded-xl text-lg tracking-wide flex items-center justify-center gap-3 ${!tutorialComplete ? 'tutorial-pulse-glow' : ''}`}
-            style={{
-              fontFamily: "'Quicksand', sans-serif",
-              fontWeight: 600,
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: '2px solid rgba(255, 255, 255, 0.15)',
-              color: 'rgba(255, 255, 255, 0.7)',
-            }}
+            className={`btn btn-ghost w-full ${!tutorialComplete ? 'tutorial-pulse-glow' : ''}`}
+            style={{ fontFamily: 'var(--font-body)', fontWeight: 600 }}
             onClick={() => setShowTutorial(true)}
-            whileHover={{
-              background: 'rgba(255, 255, 255, 0.12)',
-              borderColor: 'rgba(255, 255, 255, 0.25)',
-              color: 'rgba(255, 255, 255, 0.9)',
-            }}
             whileTap={{ scale: 0.98 }}
           >
-            <span>📖</span>
+            <BookIcon />
             How to Play
           </motion.button>
 
-          {/* Test Mode - minimal */}
           <motion.button
-            className="w-full py-2 text-sm tracking-wide flex items-center justify-center gap-2"
+            className="w-full py-2 min-h-[44px] text-sm tracking-wide flex items-center justify-center gap-2 cursor-pointer bg-transparent border-none"
             style={{
-              fontFamily: "'Quicksand', sans-serif",
+              fontFamily: 'var(--font-body)',
+              fontWeight: 600,
               color: 'rgba(255, 255, 255, 0.35)',
             }}
             onClick={() => setShowTestMode(true)}
             whileHover={{ color: 'rgba(255, 255, 255, 0.6)' }}
           >
-            <span>🧪</span>
+            <FlaskIcon />
             Test Mode
           </motion.button>
         </motion.div>
@@ -215,8 +215,8 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
           transition={{ delay: 0.8 }}
         >
           <div className="w-12 h-px bg-current" />
-          <span style={{ fontFamily: "'Quicksand', sans-serif", fontSize: '0.75rem', letterSpacing: '0.2em' }}>
-            FOR 1-4 PLAYERS
+          <span className="label-caps" style={{ color: 'inherit' }}>
+            For 1-4 Players
           </span>
           <div className="w-12 h-px bg-current" />
         </motion.div>
@@ -237,28 +237,18 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
   // Solo mode setup
   if (gameMode === 'solo') {
     return (
-      <div
-        className="min-h-screen flex flex-col items-center justify-center p-6"
-        style={{
-          background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
-        }}
-      >
+      <div className="min-h-dvh flex flex-col items-center justify-center p-4 sm:p-6">
         <motion.div
-          className="w-full max-w-md p-8 rounded-3xl"
-          style={{
-            background: 'rgba(255, 255, 255, 0.05)',
-            border: '2px solid rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(20px)',
-          }}
+          className="glass-card w-full max-w-md p-6 sm:p-8 max-h-[92dvh] overflow-y-auto"
           initial={{ x: 50, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.4, type: "spring" }}
+          transition={{ duration: 0.4, type: 'spring', stiffness: 300, damping: 28 }}
         >
           <motion.button
             onClick={() => setGameMode(null)}
-            className="flex items-center gap-2 mb-6"
+            className="flex items-center gap-2 mb-6 min-h-[44px] cursor-pointer bg-transparent border-none"
             style={{
-              fontFamily: "'Quicksand', sans-serif",
+              fontFamily: 'var(--font-body)',
               fontWeight: 600,
               color: 'rgba(255, 255, 255, 0.5)',
             }}
@@ -269,44 +259,28 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
 
           <div className="text-center mb-8">
             <motion.div
-              className="inline-flex items-center justify-center w-20 h-20 rounded-2xl text-4xl mb-3"
+              className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-3 text-white"
               style={{
-                background: 'linear-gradient(135deg, #E84855 0%, #D62839 100%)',
-                boxShadow: '0 6px 0 #9B1B30',
+                background: 'linear-gradient(135deg, var(--color-aurora-pink) 0%, #D62839 100%)',
+                boxShadow: '0 6px 0 var(--color-aurora-pink-deep)',
               }}
             >
-              🤖
+              <RobotIcon size={36} />
             </motion.div>
-            <h2
-              className="text-3xl"
-              style={{
-                fontFamily: "'Bangers', sans-serif",
-                color: '#E84855',
-                letterSpacing: '0.02em',
-              }}
-            >
+            <h2 className="heading-1 text-aurora-pink">
               Play vs Computer
             </h2>
           </div>
 
           {/* Your name */}
           <div className="mb-6">
-            <label
-              className="block mb-2 text-sm uppercase tracking-widest"
-              style={{
-                fontFamily: "'Quicksand', sans-serif",
-                fontWeight: 600,
-                color: 'rgba(255, 255, 255, 0.5)',
-              }}
-            >
-              Your Name
-            </label>
+            <label className="label-caps block mb-2">Your Name</label>
             <div className="flex items-center gap-3">
               <div
-                className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl"
+                className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
                 style={{
                   backgroundColor: PLAYER_COLORS[0],
-                  boxShadow: '0 4px 0 #9B1B30',
+                  boxShadow: `0 4px 0 ${PLAYER_SHADOWS[0]}`,
                 }}
               >
                 {PLAYER_AVATARS[0]}
@@ -315,14 +289,7 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
                 type="text"
                 value={playerName}
                 onChange={(e) => setPlayerName(e.target.value)}
-                className="flex-1 px-4 py-3 rounded-xl text-lg"
-                style={{
-                  fontFamily: "'Quicksand', sans-serif",
-                  fontWeight: 600,
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '2px solid rgba(255, 255, 255, 0.15)',
-                  color: '#fff',
-                }}
+                className="flex-1 text-lg min-w-0"
                 placeholder="Your name"
               />
             </div>
@@ -330,27 +297,19 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
 
           {/* AI opponents count */}
           <div className="mb-6">
-            <label
-              className="block mb-2 text-sm uppercase tracking-widest"
-              style={{
-                fontFamily: "'Quicksand', sans-serif",
-                fontWeight: 600,
-                color: 'rgba(255, 255, 255, 0.5)',
-              }}
-            >
-              AI Opponents
-            </label>
+            <label className="label-caps block mb-2">AI Opponents</label>
             <div className="flex gap-2">
               {[1, 2, 3].map((count) => (
                 <motion.button
                   key={count}
-                  className="flex-1 py-3 rounded-xl text-lg"
+                  className="flex-1 py-3 min-h-[48px] rounded-xl text-lg cursor-pointer"
                   style={{
-                    fontFamily: "'Bangers', sans-serif",
+                    fontFamily: 'var(--font-display)',
+                    letterSpacing: '0.04em',
                     background: aiCount === count
-                      ? 'linear-gradient(135deg, #E84855 0%, #D62839 100%)'
+                      ? 'linear-gradient(135deg, var(--color-aurora-pink) 0%, #D62839 100%)'
                       : 'rgba(255, 255, 255, 0.08)',
-                    boxShadow: aiCount === count ? '0 4px 0 #9B1B30' : 'none',
+                    boxShadow: aiCount === count ? '0 4px 0 var(--color-aurora-pink-deep)' : 'none',
                     border: aiCount === count ? 'none' : '2px solid rgba(255, 255, 255, 0.1)',
                     color: '#fff',
                   }}
@@ -366,27 +325,19 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
 
           {/* AI Difficulty */}
           <div className="mb-6">
-            <label
-              className="block mb-2 text-sm uppercase tracking-widest"
-              style={{
-                fontFamily: "'Quicksand', sans-serif",
-                fontWeight: 600,
-                color: 'rgba(255, 255, 255, 0.5)',
-              }}
-            >
-              Difficulty
-            </label>
+            <label className="label-caps block mb-2">Difficulty</label>
             <div className="flex gap-2">
               {([
-                { value: 'easy', color: '#5FAD56', shadow: '#3D7A35' },
-                { value: 'medium', color: '#F9A03F', shadow: '#C67A1F' },
-                { value: 'hard', color: '#E84855', shadow: '#9B1B30' },
+                { value: 'easy', color: 'var(--color-aurora-green)', shadow: 'var(--color-aurora-green-deep)' },
+                { value: 'medium', color: 'var(--color-aurora-orange)', shadow: 'var(--color-aurora-orange-deep)' },
+                { value: 'hard', color: 'var(--color-aurora-pink)', shadow: 'var(--color-aurora-pink-deep)' },
               ] as const).map(({ value, color, shadow }) => (
                 <motion.button
                   key={value}
-                  className="flex-1 py-3 rounded-xl capitalize text-lg"
+                  className="flex-1 py-3 min-h-[48px] rounded-xl capitalize text-lg cursor-pointer"
                   style={{
-                    fontFamily: "'Bangers', sans-serif",
+                    fontFamily: 'var(--font-display)',
+                    letterSpacing: '0.04em',
                     background: aiDifficulty === value ? color : 'rgba(255, 255, 255, 0.08)',
                     boxShadow: aiDifficulty === value ? `0 4px 0 ${shadow}` : 'none',
                     border: aiDifficulty === value ? 'none' : '2px solid rgba(255, 255, 255, 0.1)',
@@ -403,23 +354,8 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
           </div>
 
           {/* AI preview */}
-          <div
-            className="mb-8 p-4 rounded-xl"
-            style={{
-              background: 'rgba(0, 0, 0, 0.2)',
-              border: '2px solid rgba(255, 255, 255, 0.08)',
-            }}
-          >
-            <div
-              className="text-xs mb-3 uppercase tracking-widest"
-              style={{
-                fontFamily: "'Quicksand', sans-serif",
-                fontWeight: 600,
-                color: 'rgba(255, 255, 255, 0.4)',
-              }}
-            >
-              Your Opponents
-            </div>
+          <div className="glass-inset mb-8 p-4">
+            <div className="label-caps mb-3">Your Opponents</div>
             <div className="flex gap-2 flex-wrap">
               {Array.from({ length: aiCount }).map((_, i) => (
                 <motion.div
@@ -429,22 +365,17 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
                     background: 'rgba(255, 255, 255, 0.05)',
                     border: '1px solid rgba(255, 255, 255, 0.1)',
                   }}
-                  initial={{ scale: 0, rotate: -10 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ delay: i * 0.1 }}
+                  initial={{ scale: 0.6, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: i * 0.1, type: 'spring', stiffness: 350, damping: 22 }}
                 >
                   <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white"
                     style={{ backgroundColor: PLAYER_COLORS[i + 1] }}
                   >
-                    🤖
+                    <RobotIcon size={16} />
                   </div>
-                  <span
-                    style={{
-                      fontFamily: "'Bangers', sans-serif",
-                      color: '#fff',
-                    }}
-                  >
+                  <span style={{ fontFamily: 'var(--font-display)', letterSpacing: '0.04em', color: '#fff' }}>
                     {AI_NAMES[i]}
                   </span>
                 </motion.div>
@@ -453,17 +384,9 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
           </div>
 
           <motion.button
-            className="w-full py-5 rounded-2xl text-xl"
-            style={{
-              fontFamily: "'Bangers', sans-serif",
-              background: 'linear-gradient(135deg, #5FAD56 0%, #4A9A44 100%)',
-              boxShadow: '0 6px 0 #3D7A35, 0 8px 20px rgba(95, 173, 86, 0.3)',
-              color: '#fff',
-              letterSpacing: '0.05em',
-            }}
+            className="btn btn-green btn-lg w-full"
             onClick={handleStartSolo}
-            whileHover={{ y: -2, boxShadow: '0 8px 0 #3D7A35, 0 12px 30px rgba(95, 173, 86, 0.4)' }}
-            whileTap={{ y: 4, boxShadow: '0 2px 0 #3D7A35' }}
+            whileTap={{ scale: 0.98 }}
           >
             Start Game!
           </motion.button>
@@ -474,28 +397,18 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
 
   // Local multiplayer setup
   return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center p-6"
-      style={{
-        background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f0f23 100%)',
-      }}
-    >
+    <div className="min-h-dvh flex flex-col items-center justify-center p-4 sm:p-6">
       <motion.div
-        className="w-full max-w-md p-8 rounded-3xl"
-        style={{
-          background: 'rgba(255, 255, 255, 0.05)',
-          border: '2px solid rgba(255, 255, 255, 0.1)',
-          backdropFilter: 'blur(20px)',
-        }}
+        className="glass-card w-full max-w-md p-6 sm:p-8 max-h-[92dvh] overflow-y-auto"
         initial={{ x: 50, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.4, type: "spring" }}
+        transition={{ duration: 0.4, type: 'spring', stiffness: 300, damping: 28 }}
       >
         <motion.button
           onClick={() => setGameMode(null)}
-          className="flex items-center gap-2 mb-6"
+          className="flex items-center gap-2 mb-6 min-h-[44px] cursor-pointer bg-transparent border-none"
           style={{
-            fontFamily: "'Quicksand', sans-serif",
+            fontFamily: 'var(--font-body)',
             fontWeight: 600,
             color: 'rgba(255, 255, 255, 0.5)',
           }}
@@ -506,49 +419,34 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
 
         <div className="text-center mb-8">
           <motion.div
-            className="inline-flex items-center justify-center w-20 h-20 rounded-2xl text-4xl mb-3"
+            className="inline-flex items-center justify-center w-20 h-20 rounded-2xl mb-3 text-white"
             style={{
-              background: 'linear-gradient(135deg, #3185FC 0%, #1A6FE8 100%)',
-              boxShadow: '0 6px 0 #0D4F9E',
+              background: 'linear-gradient(135deg, var(--color-aurora-blue) 0%, #1A6FE8 100%)',
+              boxShadow: '0 6px 0 var(--color-aurora-blue-deep)',
             }}
           >
-            👥
+            <PlayersIcon size={36} />
           </motion.div>
-          <h2
-            className="text-3xl"
-            style={{
-              fontFamily: "'Bangers', sans-serif",
-              color: '#3185FC',
-              letterSpacing: '0.02em',
-            }}
-          >
+          <h2 className="heading-1 text-aurora-blue">
             Local Multiplayer
           </h2>
         </div>
 
         {/* Player count */}
         <div className="mb-6">
-          <label
-            className="block mb-2 text-sm uppercase tracking-widest"
-            style={{
-              fontFamily: "'Quicksand', sans-serif",
-              fontWeight: 600,
-              color: 'rgba(255, 255, 255, 0.5)',
-            }}
-          >
-            Number of Players
-          </label>
+          <label className="label-caps block mb-2">Number of Players</label>
           <div className="flex gap-2">
             {[2, 3, 4].map((count) => (
               <motion.button
                 key={count}
-                className="flex-1 py-3 rounded-xl text-lg"
+                className="flex-1 py-3 min-h-[48px] rounded-xl text-lg cursor-pointer"
                 style={{
-                  fontFamily: "'Bangers', sans-serif",
+                  fontFamily: 'var(--font-display)',
+                  letterSpacing: '0.04em',
                   background: playerCount === count
-                    ? 'linear-gradient(135deg, #3185FC 0%, #1A6FE8 100%)'
+                    ? 'linear-gradient(135deg, var(--color-aurora-blue) 0%, #1A6FE8 100%)'
                     : 'rgba(255, 255, 255, 0.08)',
-                  boxShadow: playerCount === count ? '0 4px 0 #0D4F9E' : 'none',
+                  boxShadow: playerCount === count ? '0 4px 0 var(--color-aurora-blue-deep)' : 'none',
                   border: playerCount === count ? 'none' : '2px solid rgba(255, 255, 255, 0.1)',
                   color: '#fff',
                 }}
@@ -564,56 +462,38 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
 
         {/* Player name inputs */}
         <div className="space-y-3 mb-8">
-          {Array.from({ length: playerCount }).map((_, index) => {
-            const shadows = ['#9B1B30', '#0D4F9E', '#3D7A35', '#C67A1F'];
-            return (
-              <motion.div
-                key={index}
-                className="flex items-center gap-3"
-                initial={{ x: -20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: index * 0.1 }}
+          {Array.from({ length: playerCount }).map((_, index) => (
+            <motion.div
+              key={index}
+              className="flex items-center gap-3"
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <div
+                className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                style={{
+                  backgroundColor: PLAYER_COLORS[index],
+                  boxShadow: `0 4px 0 ${PLAYER_SHADOWS[index]}`,
+                }}
               >
-                <div
-                  className="w-14 h-14 rounded-xl flex items-center justify-center text-2xl"
-                  style={{
-                    backgroundColor: PLAYER_COLORS[index],
-                    boxShadow: `0 4px 0 ${shadows[index]}`,
-                  }}
-                >
-                  {PLAYER_AVATARS[index]}
-                </div>
-                <input
-                  type="text"
-                  value={playerNames[index]}
-                  onChange={(e) => handleNameChange(index, e.target.value)}
-                  className="flex-1 px-4 py-3 rounded-xl text-lg"
-                  style={{
-                    fontFamily: "'Quicksand', sans-serif",
-                    fontWeight: 600,
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    border: '2px solid rgba(255, 255, 255, 0.15)',
-                    color: '#fff',
-                  }}
-                  placeholder={`Player ${index + 1}`}
-                />
-              </motion.div>
-            );
-          })}
+                {PLAYER_AVATARS[index]}
+              </div>
+              <input
+                type="text"
+                value={playerNames[index]}
+                onChange={(e) => handleNameChange(index, e.target.value)}
+                className="flex-1 text-lg min-w-0"
+                placeholder={`Player ${index + 1}`}
+              />
+            </motion.div>
+          ))}
         </div>
 
         <motion.button
-          className="w-full py-5 rounded-2xl text-xl"
-          style={{
-            fontFamily: "'Bangers', sans-serif",
-            background: 'linear-gradient(135deg, #5FAD56 0%, #4A9A44 100%)',
-            boxShadow: '0 6px 0 #3D7A35, 0 8px 20px rgba(95, 173, 86, 0.3)',
-            color: '#fff',
-            letterSpacing: '0.05em',
-          }}
+          className="btn btn-green btn-lg w-full"
           onClick={handleStartLocal}
-          whileHover={{ y: -2, boxShadow: '0 8px 0 #3D7A35, 0 12px 30px rgba(95, 173, 86, 0.4)' }}
-          whileTap={{ y: 4, boxShadow: '0 2px 0 #3D7A35' }}
+          whileTap={{ scale: 0.98 }}
         >
           Start Game!
         </motion.button>

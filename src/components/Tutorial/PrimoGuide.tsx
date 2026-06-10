@@ -76,8 +76,8 @@ export function PrimoGuide({ message, mood = 'happy', color = '#4ECDC4' }: Primo
             transition={{ duration: 0.6, repeat: mood === 'celebrating' ? Infinity : 0 }}
             style={{ transformOrigin: '32px 16px' }}
           >
-            <polygon points="32,4 52,16 32,20 12,16" fill="#2a2a5a" />
-            <rect x="28" y="16" width="8" height="6" fill="#2a2a5a" />
+            <polygon points="32,4 52,16 32,20 12,16" fill="var(--color-nebula-light)" />
+            <rect x="28" y="16" width="8" height="6" fill="var(--color-nebula-light)" />
             <line x1="48" y1="14" x2="52" y2="8" stroke="#FFE66D" strokeWidth="2" />
             <circle cx="52" cy="7" r="3" fill="#FFE66D" />
           </motion.g>
@@ -94,8 +94,8 @@ export function PrimoGuide({ message, mood = 'happy', color = '#4ECDC4' }: Primo
           >
             <ellipse cx="24" cy="44" rx="4" ry="4.5" fill="white" />
             <ellipse cx="40" cy="44" rx="4" ry="4.5" fill="white" />
-            <circle cx="25" cy="43" r="2.5" fill="#1a1a3e" />
-            <circle cx="41" cy="43" r="2.5" fill="#1a1a3e" />
+            <circle cx="25" cy="43" r="2.5" fill="var(--color-nebula-mid)" />
+            <circle cx="41" cy="43" r="2.5" fill="var(--color-nebula-mid)" />
             {/* Eye shine */}
             <circle cx="26" cy="42" r="1" fill="white" />
             <circle cx="42" cy="42" r="1" fill="white" />
@@ -106,7 +106,7 @@ export function PrimoGuide({ message, mood = 'happy', color = '#4ECDC4' }: Primo
             d={mood === 'excited' || mood === 'celebrating'
               ? 'M22 54 Q32 66 42 54'
               : 'M24 54 Q32 62 40 54'}
-            stroke="#1a1a3e"
+            stroke="var(--color-nebula-mid)"
             strokeWidth="2.5"
             strokeLinecap="round"
             fill="none"
@@ -139,7 +139,7 @@ export function PrimoGuide({ message, mood = 'happy', color = '#4ECDC4' }: Primo
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.3, delay: 0.2 }}
       >
-        <p className="text-white/90 text-sm sm:text-base leading-relaxed" style={{ fontFamily: 'var(--font-body)' }}>
+        <p className="text-sm sm:text-base leading-relaxed" style={{ fontFamily: 'var(--font-body)', color: 'var(--color-text-primary)' }}>
           {displayText}
           {isTyping && <span className="tutorial-cursor" />}
         </p>

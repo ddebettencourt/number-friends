@@ -1,7 +1,17 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
-const CONFETTI_COLORS = ['#FF6B9D', '#4ECDC4', '#FFE66D', '#a855f7', '#3185FC', '#98EC65'];
+const CONFETTI_COLORS = ['#E84855', '#4ECDC4', '#FFE66D', '#9B59B6', '#3185FC', '#5FAD56'];
+
+const SYMBOL_COLORS = [
+  'var(--color-aurora-pink)',
+  'var(--color-aurora-purple)',
+  'var(--color-aurora-blue)',
+  'var(--color-aurora-cyan)',
+  'var(--color-aurora-green)',
+  'var(--color-aurora-yellow)',
+  'var(--color-aurora-orange)',
+];
 const MATH_SYMBOLS = ['+', '−', '×', '÷', '√', 'π', '∑', '∞', '%', '='];
 
 export function FinalShowdownPage() {
@@ -20,7 +30,7 @@ export function FinalShowdownPage() {
           key={i}
           className="absolute text-xl pointer-events-none select-none"
           style={{
-            color: `hsla(${i * 36}, 60%, 65%, 0.15)`,
+            color: SYMBOL_COLORS[i % SYMBOL_COLORS.length],
             left: `${5 + (i % 5) * 20}%`,
             top: `${10 + Math.floor(i / 5) * 60}%`,
           }}
@@ -50,9 +60,9 @@ export function FinalShowdownPage() {
           className="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold mx-auto"
           style={{
             fontFamily: 'var(--font-display)',
-            background: 'linear-gradient(135deg, rgba(255,230,109,0.3), rgba(255,200,50,0.1))',
-            border: '3px solid #FFE66D',
-            color: '#FFE66D',
+            background: 'linear-gradient(135deg, rgba(255,230,109,0.3), rgba(255,230,109,0.1))',
+            border: '3px solid var(--color-aurora-yellow)',
+            color: 'var(--color-aurora-yellow)',
           }}
           animate={{
             boxShadow: [
@@ -82,7 +92,7 @@ export function FinalShowdownPage() {
         className="text-2xl sm:text-3xl font-bold mb-2"
         style={{
           fontFamily: 'var(--font-display)',
-          background: 'linear-gradient(135deg, #FFE66D, #FF6B9D, #a855f7, #4ECDC4)',
+          background: 'linear-gradient(135deg, var(--color-aurora-yellow), var(--color-aurora-pink), var(--color-aurora-purple), var(--color-aurora-cyan))',
           WebkitBackgroundClip: 'text',
           WebkitTextFillColor: 'transparent',
           backgroundClip: 'text',
@@ -115,12 +125,12 @@ export function FinalShowdownPage() {
         <div
           className="px-4 py-2 rounded-xl text-center"
           style={{
-            background: 'rgba(34, 197, 94, 0.1)',
-            border: '1px solid rgba(34, 197, 94, 0.3)',
+            background: 'rgba(95, 173, 86, 0.1)',
+            border: '1px solid rgba(95, 173, 86, 0.3)',
           }}
         >
           <div className="text-lg mb-0.5">🏆</div>
-          <div className="text-xs text-green-400 font-bold" style={{ fontFamily: 'var(--font-display)' }}>
+          <div className="text-xs text-aurora-green font-bold" style={{ fontFamily: 'var(--font-display)' }}>
             WIN!
           </div>
           <div className="text-[10px] text-white/40" style={{ fontFamily: 'var(--font-body)' }}>
@@ -133,12 +143,12 @@ export function FinalShowdownPage() {
         <div
           className="px-4 py-2 rounded-xl text-center"
           style={{
-            background: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
+            background: 'rgba(232, 72, 85, 0.1)',
+            border: '1px solid rgba(232, 72, 85, 0.3)',
           }}
         >
           <div className="text-lg mb-0.5">😬</div>
-          <div className="text-xs text-red-400 font-bold" style={{ fontFamily: 'var(--font-display)' }}>
+          <div className="text-xs text-aurora-pink font-bold" style={{ fontFamily: 'var(--font-display)' }}>
             FAIL
           </div>
           <div className="text-[10px] text-white/40" style={{ fontFamily: 'var(--font-body)' }}>

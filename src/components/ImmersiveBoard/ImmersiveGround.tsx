@@ -1,6 +1,29 @@
 import { useMemo } from 'react';
+import * as THREE from 'three';
 import type { Vector3Tuple } from 'three';
 import { ZONES } from '../Board3D/zoneConfig';
+import { makeNoiseTexture, makeBumpTexture } from './proceduralTextures';
+
+// Lazily-built, cached procedural ground textures (one set per zone).
+interface ZoneTex { map: THREE.CanvasTexture; bump: THREE.CanvasTexture }
+let _texCache: Record<string, ZoneTex> | null = null;
+function groundTextures(): Record<string, ZoneTex> {
+  if (_texCache) return _texCache;
+  const mk = (base: string, specks: string[], seed: number, rep: number, opts = {}): ZoneTex => {
+    const map = makeNoiseTexture(base, specks, { seed, ...opts });
+    const bump = makeBumpTexture({ seed: seed + 7 });
+    map.repeat.set(rep, rep);
+    bump.repeat.set(rep, rep);
+    return { map, bump };
+  };
+  _texCache = {
+    meadow: mk('#4a7c59', ['#3d6b4a', '#5c8f66', '#6fa055', '#34603f', '#7aa84a'], 11, 9, { count: 2000 }),
+    caves: mk('#2a2a3e', ['#1f1f30', '#3a3a55', '#4a3a6e', '#222238', '#5a4a7e'], 22, 7),
+    volcanic: mk('#1a1a1a', ['#0e0e0e', '#2a2a2a', '#3a1a10', '#ff5510', '#5a2510'], 33, 8, { maxAlpha: 0.12 }),
+    summit: mk('#c8a84e', ['#b8983e', '#d8b85e', '#e8c86e', '#a88838', '#f0d878'], 44, 8),
+  };
+  return _texCache;
+}
 
 interface ImmersiveGroundProps {
   positions: Vector3Tuple[];
@@ -36,10 +59,11 @@ function MeadowGround({ bounds }: { bounds: ReturnType<typeof getZoneBounds> }) 
   const cx = (bounds.minX + bounds.maxX) / 2;
   const cz = (bounds.minZ + bounds.maxZ) / 2;
 
+  const tex = groundTextures().meadow;
   return (
     <mesh position={[cx, bounds.minY - 0.4, cz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
       <planeGeometry args={[width, depth]} />
-      <meshStandardMaterial color="#4a7c59" roughness={0.9} metalness={0.05} />
+      <meshStandardMaterial map={tex.map} bumpMap={tex.bump} bumpScale={0.4} color="#4a7c59" roughness={0.95} metalness={0.05} />
     </mesh>
   );
 }
@@ -56,7 +80,7 @@ function CavesGround({ bounds }: { bounds: ReturnType<typeof getZoneBounds> }) {
       {/* Floor */}
       <mesh position={[cx, bounds.minY - 0.4, cz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[width, depth]} />
-        <meshStandardMaterial color="#2a2a3e" roughness={0.85} metalness={0.1} />
+        <meshStandardMaterial map={groundTextures().caves.map} bumpMap={groundTextures().caves.bump} bumpScale={0.5} color="#2a2a3e" roughness={0.85} metalness={0.15} />
       </mesh>
       {/* Cave ceiling */}
       <mesh position={[cx, bounds.minY + 8, cz]} rotation={[Math.PI / 2, 0, 0]}>
@@ -84,7 +108,7 @@ function VolcanicGround({ bounds }: { bounds: ReturnType<typeof getZoneBounds> }
     <group>
       <mesh position={[cx, bounds.minY - 0.4, cz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[width, depth]} />
-        <meshStandardMaterial color="#1a1a1a" roughness={0.95} metalness={0.1} />
+        <meshStandardMaterial map={groundTextures().volcanic.map} bumpMap={groundTextures().volcanic.bump} bumpScale={0.6} color="#1a1a1a" roughness={0.95} metalness={0.1} />
       </mesh>
       {/* Lava patches */}
       {Array.from({ length: 12 }).map((_, i) => {
@@ -118,15 +142,15 @@ function SkyIslandsGround({ bounds }: { bounds: ReturnType<typeof getZoneBounds>
         return (
           <group key={i} position={[pos[0], pos[1] - 1.2, pos[2]]}>
             <mesh>
-              <sphereGeometry args={[2.5, 12, 12]} />
+              <sphereGeometry args={[2.5, 32, 24]} />
               <meshStandardMaterial color="#ffffff" transparent opacity={0.6} roughness={1} />
             </mesh>
             <mesh position={[1.5, -0.3, 0.5]}>
-              <sphereGeometry args={[1.8, 10, 10]} />
+              <sphereGeometry args={[1.8, 28, 20]} />
               <meshStandardMaterial color="#f0f5ff" transparent opacity={0.5} roughness={1} />
             </mesh>
             <mesh position={[-1.2, 0.2, -0.3]}>
-              <sphereGeometry args={[1.5, 10, 10]} />
+              <sphereGeometry args={[1.5, 28, 20]} />
               <meshStandardMaterial color="#f5f8ff" transparent opacity={0.5} roughness={1} />
             </mesh>
           </group>
@@ -147,10 +171,13 @@ function SummitGround({ bounds }: { bounds: ReturnType<typeof getZoneBounds> }) 
     <mesh position={[cx, bounds.minY - 0.4, cz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
       <planeGeometry args={[width, depth]} />
       <meshStandardMaterial
+        map={groundTextures().summit.map}
+        bumpMap={groundTextures().summit.bump}
+        bumpScale={0.3}
         color="#c8a84e"
         emissive="#ffd700"
         emissiveIntensity={0.08}
-        roughness={0.2}
+        roughness={0.3}
         metalness={0.5}
       />
     </mesh>

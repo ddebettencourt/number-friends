@@ -482,6 +482,9 @@ export function NumberBuilder() {
   };
 
   const handleLockIn = () => {
+    // Can only lock in a valid expression that uses all 4 numbers.
+    // (The countdown timer still auto-submits whatever is there when time runs out.)
+    if (!canSubmit) return;
     submitCurrentAnswer();
   };
 
@@ -528,6 +531,8 @@ export function NumberBuilder() {
   const exprString = tokensToString(tokens);
   const currentResult = tokens.length > 0 ? safeEvaluate(exprString) : null;
   const allNumbersUsed = usesAllNumbers(tokens);
+  // Manual "Lock In" requires all 4 numbers used and a valid (evaluable) expression
+  const canSubmit = allNumbersUsed && currentResult !== null;
 
   // Pass screen
   if (phase === 'pass') {
@@ -544,14 +549,15 @@ export function NumberBuilder() {
   // AI playing
   if (phase === 'ai_turn') {
     return (
-      <div className="game-card rounded-3xl p-6">
+      <div className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6">
         <div className="text-center mb-4">
           <div className="w-16 h-16 mx-auto mb-4 rounded-2xl piece-emerald flex items-center justify-center">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-white">
               <path d="M12 4v16m-8-8h16" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
             </svg>
           </div>
-          <h2 className="text-2xl font-black text-[var(--color-emerald)]">Number Builder!</h2>
+          <div className="label-caps mb-1">Minigame</div>
+          <h2 className="heading-2 text-aurora-green">Number Builder!</h2>
           <p className="text-[var(--color-text-muted)]">Target: {target}</p>
         </div>
 
@@ -560,8 +566,8 @@ export function NumberBuilder() {
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 1, repeat: Infinity }}
         >
-          <div className="w-16 h-16 mx-auto mb-4 rounded-xl wood-inset flex items-center justify-center">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-[var(--color-wood-medium)]">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-xl glass-inset flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-[var(--color-text-muted)]">
               <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
               <circle cx="9" cy="10" r="2" fill="currentColor" />
               <circle cx="15" cy="10" r="2" fill="currentColor" />
@@ -589,9 +595,10 @@ export function NumberBuilder() {
 
     return (
       <motion.div
-        className="game-card rounded-3xl p-6"
-        initial={{ opacity: 0, scale: 0.9 }}
+        className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6 max-h-[90dvh] overflow-y-auto"
+        initial={{ opacity: 0, scale: 0.93 }}
         animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 25 }}
       >
         <div className="text-center mb-4">
           <div className="w-12 h-12 mx-auto mb-2 rounded-xl piece-emerald flex items-center justify-center">
@@ -599,15 +606,17 @@ export function NumberBuilder() {
               <path d="M12 4v16m-8-8h16" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
             </svg>
           </div>
-          <h2 className="text-2xl font-black text-[var(--color-emerald)]">Results</h2>
+          <div className="label-caps mb-1">Number Builder</div>
+          <h2 className="heading-2 text-aurora-green">Results</h2>
           <p className="text-[var(--color-text-secondary)]">
-            Target was <span className="font-bold text-[var(--color-emerald)]">{target}</span>
+            Target was <span className="font-bold text-aurora-green">{target}</span>
           </p>
         </div>
 
         <div className="space-y-2 mb-6">
           {sortedResults.map((result, idx) => {
             const isWinner = idx === 0;
+            const playerColor = players.find(p => p.id === result.playerId)?.color;
             return (
               <motion.div
                 key={result.playerId}
@@ -615,28 +624,31 @@ export function NumberBuilder() {
                 style={
                   isWinner
                     ? {
-                        background: 'linear-gradient(135deg, rgba(255, 217, 61, 0.25) 0%, rgba(255, 159, 67, 0.15) 100%)',
-                        border: '2px solid rgba(255, 217, 61, 0.6)',
-                        boxShadow: '0 0 15px rgba(255, 217, 61, 0.3)',
+                        background: 'linear-gradient(135deg, rgba(255, 230, 109, 0.22) 0%, rgba(249, 160, 63, 0.14) 100%)',
+                        border: '2px solid rgba(255, 230, 109, 0.55)',
+                        boxShadow: '0 0 15px rgba(255, 230, 109, 0.25)',
+                        borderLeft: playerColor ? `4px solid ${playerColor}` : undefined,
                       }
                     : result.difference === 0
                     ? {
-                        background: 'rgba(152, 236, 101, 0.15)',
-                        border: '1px solid rgba(152, 236, 101, 0.3)',
+                        background: 'rgba(95, 173, 86, 0.15)',
+                        border: '1px solid rgba(95, 173, 86, 0.4)',
+                        borderLeft: playerColor ? `4px solid ${playerColor}` : undefined,
                       }
                     : {
                         background: 'rgba(255, 255, 255, 0.05)',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderLeft: playerColor ? `4px solid ${playerColor}` : undefined,
                       }
                 }
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: idx * 0.1 }}
+                transition={{ delay: idx * 0.1, type: 'spring', stiffness: 350, damping: 25 }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {isWinner && (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ color: '#ffd93d' }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--color-aurora-yellow)' }}>
                         <path d="M12 2l3 6 6 1-4.5 4 1.5 6-6-3-6 3 1.5-6L3 9l6-1 3-6z" fill="currentColor" />
                       </svg>
                     )}
@@ -647,7 +659,7 @@ export function NumberBuilder() {
                     <div className="font-bold text-[var(--color-text-primary)]">
                       {Number.isInteger(result.result) ? result.result : result.result.toFixed(2)}
                     </div>
-                    <div className={`text-xs ${result.difference === 0 ? 'text-[#98ec65]' : 'text-[var(--color-text-muted)]'}`}>
+                    <div className={`text-xs ${result.difference === 0 ? 'text-aurora-green' : 'text-[var(--color-text-muted)]'}`}>
                       {result.difference === 0 ? 'Perfect!' : `off by ${result.difference.toFixed(Number.isInteger(result.difference) ? 0 : 2)}`}
                     </div>
                   </div>
@@ -670,16 +682,17 @@ export function NumberBuilder() {
 
         {optimalSolution && (
           <motion.div
-            className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4 mb-4 border border-[var(--color-amethyst)]/30"
+            className="glass-inset rounded-xl p-4 mb-4"
+            style={{ borderColor: 'rgba(155, 89, 182, 0.5)' }}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
             <div className="text-center">
-              <div className="text-xs text-[var(--color-amethyst)] font-medium mb-1">
+              <div className="label-caps mb-1" style={{ color: 'var(--color-aurora-purple)' }}>
                 {optimalSolution.difference === 0 ? 'Optimal Solution' : 'Best Possible'}
               </div>
-              <div className="font-mono text-lg font-bold text-purple-800">
+              <div className="font-mono text-lg font-bold text-[var(--color-text-primary)]">
                 {optimalSolution.expression.replace(/\*/g, '\u00D7').replace(/\//g, '\u00F7')} = {Number.isInteger(optimalSolution.result) ? optimalSolution.result : optimalSolution.result.toFixed(2)}
               </div>
             </div>
@@ -687,7 +700,7 @@ export function NumberBuilder() {
         )}
 
         <motion.button
-          className="game-button w-full py-3 piece-emerald text-white font-bold text-lg rounded-xl"
+          className="btn btn-green w-full"
           onClick={handleContinue}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -700,22 +713,22 @@ export function NumberBuilder() {
 
   // Playing phase
   return (
-    <div className="game-card rounded-3xl p-6">
+    <div className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6">
       {/* Header with target and timer */}
       <div className="flex justify-between items-center mb-4">
         <div className="text-center">
-          <div className="text-[var(--color-text-muted)] text-xs font-medium">TARGET</div>
-          <div className="text-3xl font-black text-[var(--color-emerald)]">{target}</div>
+          <div className="label-caps">Target</div>
+          <div className="font-display text-3xl text-aurora-green">{target}</div>
         </div>
 
         <div className="text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full wood-inset">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-inset">
             <span className="font-bold text-sm text-[var(--color-text-primary)]">{activePlayer?.name}</span>
           </div>
         </div>
 
         <motion.div
-          className={`text-4xl font-black ${timeLeft <= 10 ? 'text-[var(--color-ruby)]' : 'text-[var(--color-text-muted)]'}`}
+          className={`font-display text-4xl ${timeLeft <= 10 ? 'text-aurora-pink' : 'text-[var(--color-text-muted)]'}`}
           animate={timeLeft <= 10 ? { scale: [1, 1.1, 1] } : {}}
           transition={{ duration: 0.5, repeat: timeLeft <= 10 ? Infinity : 0 }}
         >
@@ -724,7 +737,7 @@ export function NumberBuilder() {
       </div>
 
       {/* Expression builder */}
-      <div className="wood-inset rounded-2xl p-4 mb-4">
+      <div className="glass-inset rounded-2xl p-4 mb-4">
         <div className="min-h-[52px] flex items-center justify-center gap-1 flex-wrap">
           {tokens.length === 0 ? (
             <span className="text-[var(--color-text-muted)] text-lg">Tap to build your expression...</span>
@@ -751,9 +764,16 @@ export function NumberBuilder() {
                 </motion.span>
               ))}
               <span className="mx-2 text-[var(--color-text-muted)]">=</span>
-              <span className={`px-3 py-1 rounded-lg font-black text-xl ${
-                currentResult === target ? 'bg-green-100 text-green-700' : 'wood-inset text-[var(--color-text-primary)]'
-              }`}>
+              <span
+                className={`px-3 py-1 rounded-lg font-black text-xl ${
+                  currentResult === target ? 'text-aurora-green' : 'glass-inset text-[var(--color-text-primary)]'
+                }`}
+                style={
+                  currentResult === target
+                    ? { background: 'rgba(95, 173, 86, 0.18)', border: '1px solid rgba(95, 173, 86, 0.45)' }
+                    : undefined
+                }
+              >
                 {currentResult !== null ? (Number.isInteger(currentResult) ? currentResult : currentResult.toFixed(2)) : '?'}
               </span>
             </>
@@ -769,7 +789,7 @@ export function NumberBuilder() {
           </span>
         )}
         {currentResult !== null && currentResult !== target && (
-          <span className="inline-block px-4 py-1 wood-inset text-[var(--color-text-secondary)] rounded-full font-medium">
+          <span className="inline-block px-4 py-1 glass-inset text-[var(--color-text-secondary)] rounded-full font-medium">
             Off by {Math.abs(target - currentResult).toFixed(Number.isInteger(target - currentResult) ? 0 : 2)}
           </span>
         )}
@@ -777,9 +797,9 @@ export function NumberBuilder() {
           <span
             className="inline-block px-4 py-1 rounded-full font-medium text-sm"
             style={{
-              background: 'rgba(255, 217, 61, 0.2)',
-              color: '#ffd93d',
-              border: '1px solid rgba(255, 217, 61, 0.4)',
+              background: 'rgba(255, 230, 109, 0.15)',
+              color: 'var(--color-aurora-yellow)',
+              border: '1px solid rgba(255, 230, 109, 0.4)',
             }}
           >
             Use all 4 numbers
@@ -789,14 +809,14 @@ export function NumberBuilder() {
 
       {/* Numbers */}
       <div className="mb-4">
-        <div className="text-[var(--color-text-muted)] text-xs font-medium mb-2 text-center">NUMBERS</div>
+        <div className="label-caps mb-2 text-center">Numbers</div>
         <div className="flex justify-center gap-2">
           {availableNumbers.map((num, idx) => (
             <motion.button
               key={idx}
-              className={`w-12 h-12 rounded-xl font-black text-xl shadow-lg transition-colors ${
+              className={`w-12 h-12 rounded-xl font-display text-xl transition-colors ${
                 usedIndices.includes(idx)
-                  ? 'wood-inset text-[var(--color-text-muted)] cursor-not-allowed opacity-50'
+                  ? 'glass-inset text-[var(--color-text-muted)] cursor-not-allowed opacity-50'
                   : 'piece-emerald text-white'
               }`}
               onClick={() => handleNumberClick(idx)}
@@ -812,12 +832,12 @@ export function NumberBuilder() {
 
       {/* Operators and Parentheses */}
       <div className="mb-4">
-        <div className="text-[var(--color-text-muted)] text-xs font-medium mb-2 text-center">OPERATORS</div>
+        <div className="label-caps mb-2 text-center">Operators</div>
         <div className="flex justify-center gap-2 flex-wrap">
           {(['+', '-', '*', '/'] as Operator[]).map((op) => (
             <motion.button
               key={op}
-              className="w-11 h-11 rounded-xl piece-sapphire text-white font-black text-xl shadow-lg"
+              className="w-11 h-11 rounded-xl piece-sapphire text-white font-display text-xl"
               onClick={() => handleOperatorClick(op)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -829,7 +849,7 @@ export function NumberBuilder() {
           {(['(', ')'] as const).map((paren) => (
             <motion.button
               key={paren}
-              className="w-11 h-11 rounded-xl piece-amethyst text-white font-black text-xl shadow-lg"
+              className="w-11 h-11 rounded-xl piece-amethyst text-white font-display text-xl"
               onClick={() => handleParenClick(paren)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -843,7 +863,7 @@ export function NumberBuilder() {
       {/* Actions */}
       <div className="flex gap-2 mb-4">
         <motion.button
-          className="flex-1 py-3 wood-inset text-[var(--color-text-secondary)] font-bold rounded-xl"
+          className="btn btn-ghost btn-sm flex-1"
           onClick={handleBackspace}
           disabled={tokens.length === 0}
           whileHover={tokens.length > 0 ? { scale: 1.02 } : {}}
@@ -852,7 +872,7 @@ export function NumberBuilder() {
           ← Undo
         </motion.button>
         <motion.button
-          className="flex-1 py-3 wood-inset text-[var(--color-text-secondary)] font-bold rounded-xl"
+          className="btn btn-ghost btn-sm flex-1"
           onClick={handleClear}
           disabled={tokens.length === 0}
           whileHover={tokens.length > 0 ? { scale: 1.02 } : {}}
@@ -861,10 +881,12 @@ export function NumberBuilder() {
           Clear
         </motion.button>
         <motion.button
-          className="flex-1 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-xl"
+          className="btn btn-green btn-sm flex-1"
           onClick={handleLockIn}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          disabled={!canSubmit}
+          title={canSubmit ? 'Lock in your answer' : 'Use all 4 numbers to build a valid expression first'}
+          whileHover={canSubmit ? { scale: 1.02 } : {}}
+          whileTap={canSubmit ? { scale: 0.98 } : {}}
         >
           Lock In
         </motion.button>

@@ -33,7 +33,7 @@ export function PrimeGamesPage() {
       {/* Prime-Off */}
       <div>
         <motion.h3
-          className="text-lg text-[#61DAFB] font-bold mb-2 text-center"
+          className="text-lg text-aurora-blue font-bold mb-2 text-center"
           style={{ fontFamily: 'var(--font-display)' }}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -57,16 +57,16 @@ export function PrimeGamesPage() {
                   style={{
                     fontFamily: 'var(--font-display)',
                     background: highlightShared && n === SHARED_PRIME
-                      ? 'rgba(97, 218, 251, 0.4)'
+                      ? 'rgba(49, 133, 252, 0.4)'
                       : 'rgba(255,255,255,0.08)',
                     border: highlightShared && n === SHARED_PRIME
-                      ? '2px solid #61DAFB'
+                      ? '2px solid var(--color-prime)'
                       : '1px solid rgba(255,255,255,0.15)',
-                    color: highlightShared && n === SHARED_PRIME ? '#61DAFB' : 'rgba(255,255,255,0.6)',
+                    color: highlightShared && n === SHARED_PRIME ? 'var(--color-prime)' : 'rgba(255,255,255,0.6)',
                   }}
                   animate={highlightShared && n === SHARED_PRIME ? {
                     scale: [1, 1.15, 1],
-                    boxShadow: ['0 0 0 rgba(97,218,251,0)', '0 0 12px rgba(97,218,251,0.5)', '0 0 0 rgba(97,218,251,0)'],
+                    boxShadow: ['0 0 0 rgba(49,133,252,0)', '0 0 12px rgba(49,133,252,0.5)', '0 0 0 rgba(49,133,252,0)'],
                   } : {}}
                   transition={{ duration: 1, repeat: Infinity }}
                 >
@@ -83,7 +83,7 @@ export function PrimeGamesPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: highlightShared ? 1 : 0 }}
         >
-          The shared prime is <span className="text-[#61DAFB] font-bold">29</span> — find it before your opponent does.
+          The shared prime is <span className="text-aurora-blue font-bold">29</span> — find it before your opponent does.
         </motion.p>
       </div>
 
@@ -93,7 +93,7 @@ export function PrimeGamesPage() {
       {/* Prime Blackjack */}
       <div>
         <motion.h3
-          className="text-lg text-[#56D4C8] font-bold mb-2 text-center"
+          className="text-lg text-aurora-cyan font-bold mb-2 text-center"
           style={{ fontFamily: 'var(--font-display)' }}
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -109,9 +109,9 @@ export function PrimeGamesPage() {
               className="w-10 h-14 rounded-lg flex items-center justify-center text-sm font-bold"
               style={{
                 fontFamily: 'var(--font-display)',
-                background: 'linear-gradient(135deg, rgba(86,212,200,0.2), rgba(86,212,200,0.05))',
-                border: '1px solid rgba(86,212,200,0.4)',
-                color: '#56D4C8',
+                background: 'linear-gradient(135deg, rgba(78,205,196,0.2), rgba(78,205,196,0.05))',
+                border: '1px solid rgba(78,205,196,0.4)',
+                color: 'var(--color-twin-prime)',
               }}
               initial={{ scale: 0, rotate: -20 }}
               animate={{ scale: 1, rotate: 0 }}

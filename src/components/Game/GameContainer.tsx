@@ -13,6 +13,7 @@ import { MinigameRouter } from '../Minigames/MinigameRouter';
 import { RulesModal, useRulesModal } from '../UI/RulesModal';
 import { SquareInfoModal, useSquareInfoModal } from '../UI/SquareInfoModal';
 import { rollGaussianDetailed } from '../../utils/diceLogic';
+import { getPath, calculateFinalPosition } from '../../utils/boardHelpers';
 import type { DiceType } from '../../types/game';
 import { getZoneIndex } from '../Board3D/zoneConfig';
 
@@ -89,13 +90,13 @@ export function GameContainer() {
   useEffect(() => {
     if ((phase === 'rolling' || phase === 'moving') && lastRoll !== null && currentPlayer) {
       setShowingRoll(true);
-      // Compute the path from current position to destination
+      // Compute the path from current position to the *actual* destination.
+      // calculateFinalPosition handles the 100 bounce-back and negative
+      // (Gaussian) rolls, and getPath orders the path in the real travel
+      // direction so backward moves animate backward, not forward.
       const startPos = currentPlayer.position;
-      const endPos = Math.min(startPos + lastRoll, 100); // Cap at 100
-      const path: number[] = [];
-      for (let i = startPos; i <= endPos; i++) {
-        path.push(i);
-      }
+      const endPos = calculateFinalPosition(startPos, lastRoll);
+      const path = getPath(startPos, endPos);
       setMovePath(path);
       // If path is only 1 step (no movement), skip hop animation wait
       setHopAnimationDone(path.length <= 1);
@@ -185,13 +186,9 @@ export function GameContainer() {
       posBeforeMinigame.current = null;
 
       if (newPos !== oldPos && Math.abs(newPos - oldPos) > 0) {
-        // Compute movePath for the minigame bonus movement
-        const path: number[] = [];
-        const start = Math.min(oldPos, newPos);
-        const end = Math.max(oldPos, newPos);
-        for (let i = start; i <= end; i++) {
-          path.push(i);
-        }
+        // Compute movePath for the minigame bonus/penalty movement, ordered in
+        // the real travel direction (penalties move the pawn backward).
+        const path = getPath(oldPos, newPos);
         setMovePath(path);
         if (boardMode === 'immersive') {
           setHopAnimationDone(false);
@@ -246,15 +243,7 @@ export function GameContainer() {
           )}
 
           {selectedDice === 'gaussian' && showGaussianRoller && (
-            <div
-              className="rounded-3xl p-6"
-              style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-              }}
-            >
+            <div className="glass-card p-4 sm:p-6 w-full max-w-md">
               <GaussianRoller
                 onComplete={handleGaussianComplete}
                 disabled={isAI}
@@ -273,22 +262,15 @@ export function GameContainer() {
 
           {selectedDice && selectedDice !== 'gaussian' && lastRoll !== null && (
             <motion.div
-              className="text-center p-6 rounded-3xl"
-              style={{
-                background: 'rgba(255, 255, 255, 0.08)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-              }}
-              initial={{ opacity: 0, scale: 0.8 }}
+              className="glass-card text-center px-8 py-5"
+              initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 350, damping: 25 }}
             >
-              <p
-                className="text-4xl font-bold mb-2"
-                style={{ fontFamily: "'Bangers', sans-serif", color: '#FFE66D' }}
-              >
+              <p className="big-number mb-1 text-aurora-yellow text-glow-gold">
                 {lastRoll}
               </p>
-              <p className="text-[var(--color-text-secondary)]" style={{ fontFamily: "'Quicksand', sans-serif" }}>
+              <p className="font-body text-sm text-[var(--color-text-secondary)]">
                 You rolled a {lastRoll}!
               </p>
             </motion.div>
@@ -296,18 +278,17 @@ export function GameContainer() {
 
           {showingRoll && lastRoll !== null && !isAI && !showGaussianRoller && (
             <motion.button
-              className="mt-4 px-8 py-3 font-display font-bold text-lg rounded-2xl text-white"
-              style={{
-                background: 'linear-gradient(135deg, #98ec65 0%, #56d4c8 100%)',
-                boxShadow: '0 0 25px rgba(152, 236, 101, 0.5)',
-              }}
+              className="btn btn-green btn-lg mt-2"
               onClick={handleContinueAfterRoll}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              whileHover={{ scale: 1.05, boxShadow: '0 0 35px rgba(152, 236, 101, 0.7)' }}
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.96 }}
             >
-              Move →
+              Move
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12" />
+                <polyline points="12 5 19 12 12 19" />
+              </svg>
             </motion.button>
           )}
         </>
@@ -315,43 +296,34 @@ export function GameContainer() {
 
       {phase === 'moving' && (
         <motion.div
-          className="text-[var(--color-text-primary)] text-xl font-display font-bold text-center px-8 py-4 rounded-2xl"
-          style={{
-            background: 'rgba(255, 255, 255, 0.08)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-          }}
-          initial={{ opacity: 0, scale: 0.9 }}
+          className="glass-card text-[var(--color-text-primary)] text-xl font-display text-center px-8 py-4"
+          initial={{ opacity: 0, scale: 0.92 }}
           animate={{ opacity: 1, scale: 1 }}
         >
           <div
             className="w-10 h-10 mx-auto mb-2 rounded-lg flex items-center justify-center"
             style={{
-              background: 'linear-gradient(135deg, #ffd93d 0%, #ff9f43 100%)',
-              boxShadow: '0 0 20px rgba(255, 217, 61, 0.5)',
+              background: 'linear-gradient(135deg, var(--color-aurora-yellow) 0%, var(--color-aurora-orange) 100%)',
+              boxShadow: '0 0 20px rgba(255, 230, 109, 0.5)',
             }}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-[#0f0a1f]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-[var(--color-text-on-light)]">
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
               <circle cx="12" cy="12" r="4" fill="currentColor" />
             </svg>
           </div>
-          Moving to square {currentPlayer ? currentPlayer.position + (lastRoll || 0) : ''}...
+          Moving to square {currentPlayer && lastRoll !== null ? calculateFinalPosition(currentPlayer.position, lastRoll) : ''}...
         </motion.div>
       )}
 
       {phase === 'end_turn' && !isAI && (
         <motion.button
-          className="px-10 py-4 font-display font-bold text-xl rounded-2xl text-white"
-          style={{
-            background: 'linear-gradient(135deg, #c678dd 0%, #ff6b9d 100%)',
-            boxShadow: '0 0 25px rgba(198, 120, 221, 0.5)',
-          }}
+          className="btn btn-purple btn-lg"
           onClick={handleEndTurn}
-          initial={{ scale: 0, rotate: -10 }}
-          animate={{ scale: 1, rotate: 0 }}
-          whileHover={{ scale: 1.05, y: -2, boxShadow: '0 0 35px rgba(198, 120, 221, 0.7)' }}
-          whileTap={{ scale: 0.95 }}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: 'spring', stiffness: 350, damping: 22 }}
+          whileTap={{ scale: 0.96 }}
         >
           End Turn
         </motion.button>
@@ -359,12 +331,7 @@ export function GameContainer() {
 
       {phase === 'end_turn' && isAI && (
         <motion.div
-          className="text-[var(--color-text-secondary)] text-lg font-display font-semibold text-center px-6 py-4 rounded-2xl flex items-center gap-3"
-          style={{
-            background: 'rgba(255, 255, 255, 0.08)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-          }}
+          className="glass-card text-[var(--color-text-secondary)] text-lg font-display text-center px-6 py-4 flex items-center gap-3"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
@@ -377,7 +344,7 @@ export function GameContainer() {
             animate={{ rotate: [0, 10, -10, 0] }}
             transition={{ duration: 0.5, repeat: Infinity }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ color: '#c678dd' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-aurora-purple">
               <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
               <circle cx="9" cy="10" r="2" fill="currentColor" />
               <circle cx="15" cy="10" r="2" fill="currentColor" />
@@ -442,15 +409,11 @@ export function GameContainer() {
         <div className="flex gap-2 ml-2">
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
-            className="p-2 rounded-xl transition-all hover:scale-110"
-            style={{
-              background: 'rgba(255, 255, 255, 0.08)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-            }}
+            className="btn-icon"
             title={soundEnabled ? 'Mute sounds' : 'Unmute sounds'}
+            aria-label={soundEnabled ? 'Mute sounds' : 'Unmute sounds'}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--color-text-secondary)]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
               {soundEnabled ? (
                 <>
@@ -464,15 +427,14 @@ export function GameContainer() {
           </button>
           <button
             onClick={rulesModal.open}
-            className="p-2 rounded-xl transition-all hover:scale-110"
-            style={{
-              background: 'rgba(255, 255, 255, 0.08)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-            }}
+            className="btn-icon"
             title="How to Play"
+            aria-label="How to Play"
           >
-            <span className="text-xl">📖</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
           </button>
         </div>
       </div>
@@ -489,28 +451,31 @@ export function GameContainer() {
                 const currentIdx = modes.indexOf(boardMode);
                 setBoardMode(modes[(currentIdx + 1) % modes.length]);
               }}
-              className="px-4 py-2 rounded-full text-sm font-body font-bold transition-all"
+              className="px-4 py-2 min-h-[44px] rounded-full text-sm font-body font-bold transition-all hover:scale-[1.03] active:scale-95"
               style={{
                 background: boardMode !== '2d'
-                  ? 'linear-gradient(135deg, #c678dd 0%, #ff6b9d 100%)'
+                  ? 'linear-gradient(135deg, var(--color-aurora-purple) 0%, var(--color-aurora-pink) 100%)'
                   : 'rgba(255, 255, 255, 0.1)',
                 border: '1px solid rgba(255, 255, 255, 0.2)',
                 color: '#fff',
                 boxShadow: boardMode !== '2d'
-                  ? '0 4px 15px rgba(198, 120, 221, 0.4)'
+                  ? '0 4px 15px rgba(155, 89, 182, 0.4)'
                   : 'none',
               }}
             >
-              {boardMode === '3d' ? '🎮 3D Board' : '📋 2D Board'} — Click to switch
+              {boardMode === '3d' ? '3D Board' : '2D Board'} — tap to switch
             </button>
           </div>
 
           {boardMode === '3d' ? (
             <Suspense fallback={
-              <div className="aspect-square max-w-2xl mx-auto rounded-3xl flex items-center justify-center"
-                style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <div className="aspect-square max-w-2xl mx-auto rounded-3xl flex items-center justify-center glass-inset">
                 <div className="text-center">
-                  <div className="text-4xl mb-2">🎮</div>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-aurora-purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-2 animate-spin-slow">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                    <polyline points="2 17 12 22 22 17" />
+                    <polyline points="2 12 12 17 22 12" />
+                  </svg>
                   <div className="font-body text-[var(--color-text-secondary)]">Loading 3D world...</div>
                 </div>
               </div>
@@ -546,8 +511,8 @@ export function GameContainer() {
           style={{
             background: 'rgba(255, 255, 255, 0.08)',
             backdropFilter: 'blur(20px)',
-            border: `2px solid ${currentPlayer?.color || '#c678dd'}40`,
-            boxShadow: `0 0 25px ${currentPlayer?.color || '#c678dd'}30`,
+            border: `2px solid ${currentPlayer?.color || '#9B59B6'}40`,
+            boxShadow: `0 0 25px ${currentPlayer?.color || '#9B59B6'}30`,
           }}
           animate={isAI ? { scale: [1, 1.02, 1] } : {}}
           transition={{ duration: 1, repeat: isAI ? Infinity : 0 }}

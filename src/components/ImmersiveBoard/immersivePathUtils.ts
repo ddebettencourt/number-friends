@@ -116,7 +116,31 @@ function isPerfectSquare(n: number): boolean {
   return sqrt === Math.floor(sqrt);
 }
 
+function isPerfectCube(n: number): boolean {
+  const cbrt = Math.cbrt(n);
+  return Math.round(cbrt) ** 3 === n;
+}
+
 function isFibonacci(n: number): boolean {
   const fibs = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89];
   return fibs.includes(n);
+}
+
+// Describes the "special" identity of a square so the immersive board can
+// render a floating marker glyph + accent color above it. Returns null for
+// ordinary squares. Priority roughly matches the in-game importance.
+export interface SquareKind {
+  symbol: string;
+  color: string;
+  label: string;
+}
+
+export function getSquareKind(squareNumber: number): SquareKind | null {
+  if (squareNumber === 1 || squareNumber === 100) return null;
+  if (isPerfectSquare(squareNumber)) return { symbol: '√', color: '#c678dd', label: 'Perfect square' };
+  if (isPerfectCube(squareNumber)) return { symbol: '∛', color: '#f97316', label: 'Perfect cube' };
+  if (isPrime(squareNumber)) return { symbol: 'P', color: '#61dafb', label: 'Prime' };
+  if (isFibonacci(squareNumber)) return { symbol: 'φ', color: '#98ec65', label: 'Fibonacci' };
+  if (squareNumber % 10 === 0) return { symbol: '⊗', color: '#ff9f43', label: 'Multiple of 10' };
+  return null;
 }

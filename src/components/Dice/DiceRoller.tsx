@@ -94,24 +94,25 @@ export function DiceRoller({ diceType, onRollComplete, disabled, autoRoll }: Dic
     <div className="flex flex-col items-center gap-4">
       {/* 3D Dice Box */}
       <div
-        className="cursor-pointer rounded-2xl overflow-hidden select-none max-w-[300px] w-full aspect-square"
+        className="cursor-pointer rounded-2xl overflow-hidden select-none w-full max-w-[300px] aspect-square"
         onClick={handleClick}
         style={{
-          width: 300,
-          height: 300,
-          background: 'linear-gradient(145deg, #2d1b0e 0%, #1a0f06 100%)',
+          background: 'linear-gradient(145deg, var(--color-nebula-light) 0%, var(--color-void) 100%)',
+          border: '1px solid rgba(255,255,255,0.15)',
           boxShadow: `inset 0 2px 10px rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.3), 0 0 40px ${config.color}20`,
         }}
       >
         <Canvas camera={{ position: [0, 5, 5], fov: 45 }} shadows>
-          <ambientLight intensity={0.4} />
-          <directionalLight position={[5, 10, 5]} intensity={1.5} castShadow />
-          <directionalLight position={[-3, 5, -3]} intensity={0.3} />
+          <ambientLight intensity={0.7} />
+          <directionalLight position={[5, 10, 5]} intensity={1.1} castShadow />
+          <directionalLight position={[-3, 5, -3]} intensity={0.5} />
           {/* Warm fill light */}
-          <pointLight position={[0, 3, 3]} intensity={0.3} color="#ffeedd" />
+          <pointLight position={[0, 3, 3]} intensity={0.4} color="#ffeedd" />
           <pointLight position={[0, 8, 0]} intensity={0.4} color={config.color} />
+          {/* Front fill so the upward face's number is always lit + readable */}
+          <pointLight position={[0, 4, 4]} intensity={0.5} color="#ffffff" />
           {/* Subtle rim light */}
-          <directionalLight position={[-5, 3, -5]} intensity={0.2} color="#aaccff" />
+          <directionalLight position={[-5, 3, -5]} intensity={0.25} color="#aaccff" />
           <CameraController dicePosition={dicePosition} isSettled={isSettled} />
           <Physics gravity={[0, -35, 0]} key={rollKey}>
             <DiceBox3D />
@@ -128,9 +129,8 @@ export function DiceRoller({ diceType, onRollComplete, disabled, autoRoll }: Dic
 
       {/* Dice type label */}
       <div
-        className="px-4 py-1.5 rounded-lg font-bold text-white text-sm"
+        className="px-4 py-1.5 rounded-lg font-display text-white text-sm"
         style={{
-          fontFamily: "'Bangers', sans-serif",
           background: config.color,
           boxShadow: `0 3px 0 ${adjustColor(config.color, -40)}, 0 0 15px ${config.color}40`,
           letterSpacing: '0.05em',
@@ -143,7 +143,7 @@ export function DiceRoller({ diceType, onRollComplete, disabled, autoRoll }: Dic
       <div className="text-center h-10">
         {!isRolling && displayedResult === null && !disabled && (
           <motion.p
-            className="text-[var(--color-text-secondary)] font-medium"
+            className="text-[var(--color-text-secondary)] font-body font-medium"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
@@ -152,7 +152,7 @@ export function DiceRoller({ diceType, onRollComplete, disabled, autoRoll }: Dic
         )}
         {isRolling && !displayedResult && (
           <motion.p
-            className="text-[var(--color-text-muted)] font-medium"
+            className="text-[var(--color-text-muted)] font-body font-medium"
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 0.5, repeat: Infinity, ease: "easeInOut" }}
           >
@@ -161,8 +161,11 @@ export function DiceRoller({ diceType, onRollComplete, disabled, autoRoll }: Dic
         )}
         {displayedResult !== null && (
           <motion.p
-            className="font-bold text-xl"
-            style={{ fontFamily: "'Bangers', sans-serif", color: config.color }}
+            className="font-display text-2xl tracking-wide"
+            style={{
+              color: config.color,
+              textShadow: `0 0 18px ${config.color}90, 0 0 36px ${config.color}50`,
+            }}
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ type: 'spring', stiffness: 400, damping: 15 }}
@@ -209,7 +212,7 @@ function CameraController({ dicePosition, isSettled }: { dicePosition: THREE.Vec
   return null;
 }
 
-// 3D Box / tray for dice - wooden tray aesthetic
+// 3D Box / tray for dice - dark nebula tray aesthetic
 function DiceBox3D() {
   const wallThickness = 0.15;
   const boxSize = 6;
@@ -217,27 +220,27 @@ function DiceBox3D() {
 
   return (
     <group position={[0, -1.5, 0]}>
-      {/* Floor - warm wood */}
+      {/* Floor - nebula rim */}
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[boxSize / 2, wallThickness / 2, boxSize / 2]} position={[0, 0, 0]} />
         <mesh receiveShadow position={[0, 0, 0]}>
           <boxGeometry args={[boxSize, wallThickness, boxSize]} />
-          <meshStandardMaterial color="#8B6F47" roughness={0.85} metalness={0.05} />
+          <meshStandardMaterial color="#2d2d5a" roughness={0.85} metalness={0.05} />
         </mesh>
       </RigidBody>
 
-      {/* Felt surface - richer green */}
+      {/* Felt surface - deep nebula */}
       <mesh position={[0, 0.08, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[boxSize - 0.3, boxSize - 0.3]} />
-        <meshStandardMaterial color="#2d6a4f" roughness={1.0} />
+        <meshStandardMaterial color="#16213e" roughness={1.0} />
       </mesh>
 
-      {/* Back wall - darker wood */}
+      {/* Back wall - nebula glass */}
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[boxSize / 2, wallHeight / 2, wallThickness / 2]} position={[0, wallHeight / 2, -boxSize / 2]} />
         <mesh receiveShadow position={[0, wallHeight / 2, -boxSize / 2]}>
           <boxGeometry args={[boxSize, wallHeight, wallThickness]} />
-          <meshStandardMaterial color="#6B4226" transparent opacity={0.4} roughness={0.8} />
+          <meshStandardMaterial color="#2d2d5a" transparent opacity={0.4} roughness={0.8} />
         </mesh>
       </RigidBody>
 
@@ -246,21 +249,21 @@ function DiceBox3D() {
         <CuboidCollider args={[boxSize / 2, wallHeight / 2, wallThickness / 2]} position={[0, wallHeight / 2, boxSize / 2]} />
       </RigidBody>
 
-      {/* Left wall - darker wood */}
+      {/* Left wall - nebula glass */}
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[wallThickness / 2, wallHeight / 2, boxSize / 2]} position={[-boxSize / 2, wallHeight / 2, 0]} />
         <mesh receiveShadow position={[-boxSize / 2, wallHeight / 2, 0]}>
           <boxGeometry args={[wallThickness, wallHeight, boxSize]} />
-          <meshStandardMaterial color="#6B4226" transparent opacity={0.4} roughness={0.8} />
+          <meshStandardMaterial color="#2d2d5a" transparent opacity={0.4} roughness={0.8} />
         </mesh>
       </RigidBody>
 
-      {/* Right wall - darker wood */}
+      {/* Right wall - nebula glass */}
       <RigidBody type="fixed" colliders={false}>
         <CuboidCollider args={[wallThickness / 2, wallHeight / 2, boxSize / 2]} position={[boxSize / 2, wallHeight / 2, 0]} />
         <mesh receiveShadow position={[boxSize / 2, wallHeight / 2, 0]}>
           <boxGeometry args={[wallThickness, wallHeight, boxSize]} />
-          <meshStandardMaterial color="#6B4226" transparent opacity={0.4} roughness={0.8} />
+          <meshStandardMaterial color="#2d2d5a" transparent opacity={0.4} roughness={0.8} />
         </mesh>
       </RigidBody>
     </group>
@@ -577,10 +580,10 @@ const TetrahedronDice = forwardRef<THREE.Group, { color: THREE.Color }>(
       <group ref={ref}>
         <mesh castShadow>
           <tetrahedronGeometry args={[size]} />
-          <meshStandardMaterial color={color} flatShading roughness={0.15} metalness={0.35} />
+          <meshStandardMaterial color={color} flatShading roughness={0.4} metalness={0.08} />
         </mesh>
         {faces.map(({ num, pos, rot }) => (
-          <Text key={num} position={pos} rotation={rot} fontSize={0.28} color="white" anchorX="center" anchorY="middle" outlineWidth={0.025} outlineColor="black">
+          <Text key={num} position={pos} rotation={rot} fontSize={0.34} color="white" anchorX="center" anchorY="middle" outlineWidth={0.045} outlineColor="black" material-toneMapped={false}>
             {num}
           </Text>
         ))}
@@ -595,7 +598,7 @@ const CubeDice = forwardRef<THREE.Group, { color: THREE.Color }>(
     return (
       <group ref={ref}>
         <RoundedBox args={[1, 1, 1]} radius={0.08} smoothness={4} castShadow>
-          <meshStandardMaterial color={color} roughness={0.15} metalness={0.35} />
+          <meshStandardMaterial color={color} roughness={0.4} metalness={0.08} />
         </RoundedBox>
         <DicePipsFace face="front" value={1} />
         <DicePipsFace face="back" value={6} />
@@ -614,14 +617,14 @@ const PrimeDice = forwardRef<THREE.Group, { color: THREE.Color }>(
     return (
       <group ref={ref}>
         <RoundedBox args={[1, 1, 1]} radius={0.08} smoothness={4} castShadow>
-          <meshStandardMaterial color={color} roughness={0.15} metalness={0.35} />
+          <meshStandardMaterial color={color} roughness={0.4} metalness={0.08} />
         </RoundedBox>
-        <Text position={[0, 0, 0.501]} fontSize={0.45} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="black">2</Text>
-        <Text position={[0.501, 0, 0]} rotation={[0, Math.PI / 2, 0]} fontSize={0.45} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="black">3</Text>
-        <Text position={[0, 0.501, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.45} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="black">5</Text>
-        <Text position={[0, -0.501, 0]} rotation={[Math.PI / 2, 0, 0]} fontSize={0.45} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="black">7</Text>
-        <Text position={[-0.501, 0, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.4} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="black">11</Text>
-        <Text position={[0, 0, -0.501]} rotation={[0, Math.PI, 0]} fontSize={0.4} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="black">13</Text>
+        <Text position={[0, 0, 0.501]} fontSize={0.5} color="white" anchorX="center" anchorY="middle" outlineWidth={0.045} outlineColor="black" material-toneMapped={false}>2</Text>
+        <Text position={[0.501, 0, 0]} rotation={[0, Math.PI / 2, 0]} fontSize={0.5} color="white" anchorX="center" anchorY="middle" outlineWidth={0.045} outlineColor="black" material-toneMapped={false}>3</Text>
+        <Text position={[0, 0.501, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.5} color="white" anchorX="center" anchorY="middle" outlineWidth={0.045} outlineColor="black" material-toneMapped={false}>5</Text>
+        <Text position={[0, -0.501, 0]} rotation={[Math.PI / 2, 0, 0]} fontSize={0.5} color="white" anchorX="center" anchorY="middle" outlineWidth={0.045} outlineColor="black" material-toneMapped={false}>7</Text>
+        <Text position={[-0.501, 0, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.46} color="white" anchorX="center" anchorY="middle" outlineWidth={0.045} outlineColor="black" material-toneMapped={false}>11</Text>
+        <Text position={[0, 0, -0.501]} rotation={[0, Math.PI, 0]} fontSize={0.46} color="white" anchorX="center" anchorY="middle" outlineWidth={0.045} outlineColor="black" material-toneMapped={false}>13</Text>
       </group>
     );
   }
@@ -633,15 +636,15 @@ const GaussianDice = forwardRef<THREE.Group, { color: THREE.Color }>(
     return (
       <group ref={ref}>
         <RoundedBox args={[1, 1, 1]} radius={0.08} smoothness={4} castShadow>
-          <meshStandardMaterial color={color} roughness={0.15} metalness={0.35} />
+          <meshStandardMaterial color={color} roughness={0.4} metalness={0.08} />
         </RoundedBox>
         {/* Show bell curve symbol on faces since values are dynamic */}
-        <Text position={[0, 0, 0.501]} fontSize={0.35} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="black">~</Text>
-        <Text position={[0.501, 0, 0]} rotation={[0, Math.PI / 2, 0]} fontSize={0.35} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="black">~</Text>
-        <Text position={[0, 0.501, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.35} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="black">~</Text>
-        <Text position={[0, -0.501, 0]} rotation={[Math.PI / 2, 0, 0]} fontSize={0.35} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="black">~</Text>
-        <Text position={[-0.501, 0, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.35} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="black">~</Text>
-        <Text position={[0, 0, -0.501]} rotation={[0, Math.PI, 0]} fontSize={0.35} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="black">~</Text>
+        <Text position={[0, 0, 0.501]} fontSize={0.46} color="white" anchorX="center" anchorY="middle" outlineWidth={0.045} outlineColor="black" material-toneMapped={false}>~</Text>
+        <Text position={[0.501, 0, 0]} rotation={[0, Math.PI / 2, 0]} fontSize={0.46} color="white" anchorX="center" anchorY="middle" outlineWidth={0.045} outlineColor="black" material-toneMapped={false}>~</Text>
+        <Text position={[0, 0.501, 0]} rotation={[-Math.PI / 2, 0, 0]} fontSize={0.46} color="white" anchorX="center" anchorY="middle" outlineWidth={0.045} outlineColor="black" material-toneMapped={false}>~</Text>
+        <Text position={[0, -0.501, 0]} rotation={[Math.PI / 2, 0, 0]} fontSize={0.46} color="white" anchorX="center" anchorY="middle" outlineWidth={0.045} outlineColor="black" material-toneMapped={false}>~</Text>
+        <Text position={[-0.501, 0, 0]} rotation={[0, -Math.PI / 2, 0]} fontSize={0.46} color="white" anchorX="center" anchorY="middle" outlineWidth={0.045} outlineColor="black" material-toneMapped={false}>~</Text>
+        <Text position={[0, 0, -0.501]} rotation={[0, Math.PI, 0]} fontSize={0.46} color="white" anchorX="center" anchorY="middle" outlineWidth={0.045} outlineColor="black" material-toneMapped={false}>~</Text>
       </group>
     );
   }
@@ -704,10 +707,10 @@ const OctahedronDice = forwardRef<THREE.Group, { color: THREE.Color }>(
       <group ref={ref}>
         <mesh castShadow>
           <octahedronGeometry args={[r]} />
-          <meshStandardMaterial color={color} flatShading roughness={0.15} metalness={0.35} />
+          <meshStandardMaterial color={color} flatShading roughness={0.4} metalness={0.08} />
         </mesh>
         {faces.map(({ num, pos, rot }) => (
-          <Text key={num} position={pos as [number, number, number]} rotation={rot as [number, number, number]} fontSize={0.22} color="white" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="black">
+          <Text key={num} position={pos as [number, number, number]} rotation={rot as [number, number, number]} fontSize={0.3} color="white" anchorX="center" anchorY="middle" outlineWidth={0.045} outlineColor="black" material-toneMapped={false}>
             {num}
           </Text>
         ))}
@@ -796,7 +799,7 @@ const D10Dice = forwardRef<THREE.Group, { color: THREE.Color }>(
     return (
       <group ref={ref} rotation={[Math.PI / 2, 0, 0]}>
         <mesh castShadow geometry={geometry}>
-          <meshStandardMaterial color={color} flatShading roughness={0.15} metalness={0.35} />
+          <meshStandardMaterial color={color} flatShading roughness={0.4} metalness={0.08} />
         </mesh>
         {faceData.map(({ num, center, normal }) => {
           const labelPos = center.clone().add(normal.clone().multiplyScalar(0.02));
@@ -809,7 +812,7 @@ const D10Dice = forwardRef<THREE.Group, { color: THREE.Color }>(
               key={num}
               position={[labelPos.x, labelPos.y, labelPos.z]}
               rotation={[euler.x, euler.y, euler.z]}
-              fontSize={0.28}
+              fontSize={0.34}
               color="white"
               anchorX="center"
               anchorY="middle"

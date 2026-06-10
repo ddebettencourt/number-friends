@@ -17,6 +17,18 @@ interface PlayerResult {
 
 type Phase = 'pass' | 'countdown' | 'playing' | 'ai_turn' | 'results';
 
+// Display-only remap: legacy option hexes from mathHelpers -> design-system tokens
+const OPTION_COLOR_MAP: Record<string, string> = {
+  '#ef4444': '#E84855', // aurora-pink
+  '#3b82f6': '#3185FC', // aurora-blue
+  '#22c55e': '#5FAD56', // aurora-green
+  '#eab308': '#F9A03F', // aurora-orange
+  '#a855f7': '#9B59B6', // aurora-purple
+  '#ec4899': '#4ECDC4', // aurora-cyan
+};
+
+const optionColor = (color: string) => OPTION_COLOR_MAP[color] ?? color;
+
 export function PrimeOff() {
   const { players, currentPlayerIndex, endMinigame, aiPlayers } = useGameStore();
   const triggeringPlayer = players[currentPlayerIndex];
@@ -207,17 +219,16 @@ export function PrimeOff() {
   if (phase === 'countdown') {
     return (
       <motion.div
-        className="game-card rounded-3xl p-8 shadow-2xl text-center"
-        initial={{ scale: 0.9, opacity: 0 }}
+        className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6 text-center"
+        initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 25 }}
       >
-        <div className="mb-4">
-          <span className="text-[var(--color-text-muted)] text-sm">{activePlayer?.name}</span>
-        </div>
-        <h2 className="text-2xl font-bold text-[var(--color-text-secondary)] mb-4">Get Ready!</h2>
+        <div className="label-caps mb-4">{activePlayer?.name}</div>
+        <h2 className="heading-2 text-[var(--color-text-secondary)] mb-4">Get Ready!</h2>
         <motion.div
           key={countdown}
-          className="text-8xl font-black text-[var(--color-amethyst)]"
+          className="big-number text-aurora-purple"
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
         >
@@ -230,9 +241,10 @@ export function PrimeOff() {
   // AI playing
   if (phase === 'ai_turn') {
     return (
-      <div className="game-card rounded-3xl p-6 shadow-2xl">
+      <div className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6">
         <div className="text-center mb-4">
-          <h2 className="text-2xl font-black text-[var(--color-amethyst)]">Prime-Off!</h2>
+          <div className="label-caps mb-1">Minigame</div>
+          <h2 className="heading-2 text-aurora-purple">Prime-Off!</h2>
         </div>
 
         <motion.div
@@ -240,20 +252,20 @@ export function PrimeOff() {
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 1, repeat: Infinity }}
         >
-          <div className="w-16 h-16 mx-auto mb-4 rounded-xl wood-inset flex items-center justify-center">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-[var(--color-wood-medium)]">
+          <div className="glass-inset w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-aurora-cyan">
               <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
               <circle cx="9" cy="10" r="2" fill="currentColor" />
               <circle cx="15" cy="10" r="2" fill="currentColor" />
               <path d="M8 15h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </div>
-          <p className="text-[var(--color-text-secondary)] font-medium">
+          <p className="font-body text-[var(--color-text-secondary)] font-medium">
             {activePlayer?.name} is playing...
           </p>
         </motion.div>
 
-        <div className="text-center text-[var(--color-text-muted)] text-sm">
+        <div className="text-center font-body text-[var(--color-text-muted)] text-sm">
           {playerAnswers.filter(p => p.hasAnswered).length} of {players.length} players done
         </div>
       </div>
@@ -263,26 +275,26 @@ export function PrimeOff() {
   // Playing
   if (phase === 'playing') {
     return (
-      <div className="game-card rounded-3xl p-6 shadow-2xl">
+      <div className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6 max-h-[90dvh] overflow-y-auto">
         <div className="text-center mb-2">
-          <div className="inline-flex items-center gap-2 px-4 py-1 rounded-full wood-inset mb-2">
-            <span className="font-bold text-[var(--color-text-primary)]">{activePlayer?.name}</span>
+          <div className="glass-inset inline-flex items-center gap-2 px-4 py-1 rounded-full mb-2">
+            <span className="font-body font-bold text-[var(--color-text-primary)]">{activePlayer?.name}</span>
           </div>
-          <h3 className="text-[var(--color-text-secondary)] font-bold">
-            Find the prime on <span className="text-[var(--color-amethyst)]">BOTH</span> screens!
+          <h3 className="heading-2 text-[var(--color-text-secondary)]">
+            Find the prime on <span className="text-aurora-purple">BOTH</span> screens!
           </h3>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4">
           {/* Screen 1 */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-4">
-            <div className="text-slate-400 text-xs font-bold mb-3 text-center tracking-wider">SCREEN 1</div>
-            <div className="grid grid-cols-2 gap-2">
+          <div className="glass-inset p-2 sm:p-4">
+            <div className="label-caps mb-3 text-center">Screen 1</div>
+            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
               {screens.screen1.map((item, idx) => (
                 <motion.button
                   key={idx}
-                  className="py-4 rounded-xl text-white font-black text-xl shadow-lg"
-                  style={{ backgroundColor: item.color }}
+                  className="py-3 sm:py-4 min-h-11 rounded-xl text-white font-title text-xl shadow-lg cursor-pointer"
+                  style={{ backgroundColor: optionColor(item.color) }}
                   onClick={() => handleSelect(item.number)}
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
@@ -294,14 +306,14 @@ export function PrimeOff() {
           </div>
 
           {/* Screen 2 */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-4">
-            <div className="text-slate-400 text-xs font-bold mb-3 text-center tracking-wider">SCREEN 2</div>
-            <div className="grid grid-cols-2 gap-2">
+          <div className="glass-inset p-2 sm:p-4">
+            <div className="label-caps mb-3 text-center">Screen 2</div>
+            <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
               {screens.screen2.map((item, idx) => (
                 <motion.button
                   key={idx}
-                  className="py-4 rounded-xl text-white font-black text-xl shadow-lg"
-                  style={{ backgroundColor: item.color }}
+                  className="py-3 sm:py-4 min-h-11 rounded-xl text-white font-title text-xl shadow-lg cursor-pointer"
+                  style={{ backgroundColor: optionColor(item.color) }}
                   onClick={() => handleSelect(item.number)}
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
@@ -313,7 +325,7 @@ export function PrimeOff() {
           </div>
         </div>
 
-        <div className="text-center text-[var(--color-text-muted)] text-sm">
+        <div className="text-center font-body text-[var(--color-text-muted)] text-sm">
           {playerAnswers.filter(p => p.hasAnswered).length} of {players.length} players done
         </div>
       </div>
@@ -328,20 +340,28 @@ export function PrimeOff() {
 
   return (
     <motion.div
-      className="game-card rounded-3xl p-6 shadow-2xl"
-      initial={{ opacity: 0, scale: 0.9 }}
+      className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6 max-h-[90dvh] overflow-y-auto"
+      initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 350, damping: 25 }}
     >
       <div className="text-center mb-4">
-        <div className="w-12 h-12 mx-auto mb-2 rounded-xl piece-amethyst flex items-center justify-center">
+        <div
+          className="w-12 h-12 mx-auto mb-2 rounded-xl flex items-center justify-center"
+          style={{
+            background: 'linear-gradient(135deg, var(--color-aurora-purple) 0%, var(--color-aurora-purple-deep) 100%)',
+            boxShadow: '0 4px 15px rgba(155, 89, 182, 0.4)',
+          }}
+        >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" className="text-white">
             <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
           </svg>
         </div>
-        <h2 className="text-2xl font-black text-[var(--color-amethyst)]">Results</h2>
-        <p className="text-[var(--color-text-secondary)]">
-          The answer was <span className="font-bold text-[var(--color-amethyst)]">{screens.answer}</span>
+        <div className="label-caps mb-1">Prime-Off!</div>
+        <h2 className="heading-2 text-aurora-purple">Results</h2>
+        <p className="font-body text-[var(--color-text-secondary)]">
+          The answer was <span className="font-bold text-aurora-purple">{screens.answer}</span>
         </p>
       </div>
 
@@ -363,18 +383,18 @@ export function PrimeOff() {
                 style={
                   isWinner
                     ? {
-                        background: 'linear-gradient(135deg, rgba(255, 217, 61, 0.25) 0%, rgba(255, 159, 67, 0.15) 100%)',
-                        border: '2px solid rgba(255, 217, 61, 0.6)',
-                        boxShadow: '0 0 15px rgba(255, 217, 61, 0.3)',
+                        background: 'linear-gradient(135deg, rgba(255, 230, 109, 0.25) 0%, rgba(249, 160, 63, 0.15) 100%)',
+                        border: '2px solid rgba(255, 230, 109, 0.6)',
+                        boxShadow: '0 0 15px rgba(255, 230, 109, 0.3)',
                       }
                     : result.correct
                     ? {
-                        background: 'rgba(152, 236, 101, 0.15)',
-                        border: '1px solid rgba(152, 236, 101, 0.3)',
+                        background: 'rgba(95, 173, 86, 0.15)',
+                        border: '1px solid rgba(95, 173, 86, 0.4)',
                       }
                     : {
-                        background: 'rgba(255, 107, 157, 0.15)',
-                        border: '1px solid rgba(255, 107, 157, 0.3)',
+                        background: 'rgba(232, 72, 85, 0.15)',
+                        border: '1px solid rgba(232, 72, 85, 0.4)',
                       }
                 }
                 initial={{ x: -20, opacity: 0 }}
@@ -383,18 +403,18 @@ export function PrimeOff() {
               >
                 <div className="flex items-center gap-3">
                   {isWinner && (
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ color: '#ffd93d' }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--color-aurora-yellow)' }}>
                       <path d="M12 2l3 6 6 1-4.5 4 1.5 6-6-3-6 3 1.5-6L3 9l6-1 3-6z" fill="currentColor" />
                     </svg>
                   )}
-                  <span className="font-bold text-[var(--color-text-primary)]">{result.playerName}</span>
-                  {result.isAI && <span className="text-xs text-[var(--color-text-muted)]">AI</span>}
+                  <span className="font-body font-bold text-[var(--color-text-primary)]">{result.playerName}</span>
+                  {result.isAI && <span className="label-caps">AI</span>}
                 </div>
                 <div className="text-right">
                   {result.correct ? (
-                    <span className="text-[#98ec65] font-bold">{result.time?.toFixed(2)}s</span>
+                    <span className="font-title text-aurora-green">{result.time?.toFixed(2)}s</span>
                   ) : (
-                    <span className="text-[#ff6b9d] font-medium">Wrong</span>
+                    <span className="font-body font-medium text-aurora-pink">Wrong</span>
                   )}
                 </div>
               </motion.div>
@@ -402,7 +422,7 @@ export function PrimeOff() {
           })}
       </div>
 
-      <div className="text-center text-[var(--color-text-secondary)] mb-4">
+      <div className="text-center font-body text-[var(--color-text-secondary)] mb-4">
         {winner?.playerId === triggeringPlayer.id
           ? 'You win! Advance to the next prime!'
           : winner
@@ -411,7 +431,7 @@ export function PrimeOff() {
       </div>
 
       <motion.button
-        className="w-full py-3 piece-amethyst text-white font-bold text-lg rounded-xl"
+        className="btn btn-purple w-full"
         onClick={handleContinue}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}

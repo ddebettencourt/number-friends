@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
+import { Text, Sparkles } from '@react-three/drei';
 import type { Group } from 'three';
 import type { Vector3Tuple } from 'three';
 import type { Player } from '../../types/game';
@@ -15,13 +15,14 @@ interface PlayerPawnProps {
   hopDuration?: number;
   hopHeight?: number;
   pawnScale?: number;
+  glow?: boolean;
   onHopComplete?: () => void;
 }
 
 const HOP_DURATION = 0.25; // seconds per hop
 const HOP_HEIGHT = 0.8; // how high each hop goes
 
-export function PlayerPawn({ player, position, playerIndex, totalPlayers, movePath = [], pathPositions = [], hopDuration, hopHeight, pawnScale = 1, onHopComplete }: PlayerPawnProps) {
+export function PlayerPawn({ player, position, playerIndex, totalPlayers, movePath = [], pathPositions = [], hopDuration, hopHeight, pawnScale = 1, glow = false, onHopComplete }: PlayerPawnProps) {
   const groupRef = useRef<Group>(null);
   const targetPosition = useRef(position);
 
@@ -178,8 +179,22 @@ export function PlayerPawn({ player, position, playerIndex, totalPlayers, movePa
         <capsuleGeometry args={[0.2, 0.3, 8, 16]} />
         <meshStandardMaterial
           color={player.color}
-          roughness={0.3}
-          metalness={0.2}
+          emissive={player.color}
+          emissiveIntensity={glow ? 0.4 : 0.18}
+          roughness={0.25}
+          metalness={0.35}
+        />
+      </mesh>
+
+      {/* Glossy highlight cap on the body */}
+      <mesh position={[0, 0.12, 0]}>
+        <sphereGeometry args={[0.205, 16, 16]} />
+        <meshStandardMaterial
+          color="#ffffff"
+          transparent
+          opacity={0.12}
+          roughness={0.1}
+          metalness={0.9}
         />
       </mesh>
 
@@ -188,8 +203,10 @@ export function PlayerPawn({ player, position, playerIndex, totalPlayers, movePa
         <sphereGeometry args={[0.18, 16, 16]} />
         <meshStandardMaterial
           color={player.color}
-          roughness={0.3}
-          metalness={0.2}
+          emissive={player.color}
+          emissiveIntensity={glow ? 0.4 : 0.18}
+          roughness={0.25}
+          metalness={0.35}
         />
       </mesh>
 
@@ -218,6 +235,18 @@ export function PlayerPawn({ player, position, playerIndex, totalPlayers, movePa
           opacity={0.8}
         />
       </mesh>
+
+      {/* Active-player flourish: soft light, halo ring + drifting sparkles */}
+      {glow && (
+        <>
+          <pointLight position={[0, 0.5, 0]} color={player.color} intensity={1.4} distance={5} decay={2} />
+          <mesh position={[0, -0.38, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+            <ringGeometry args={[0.32, 0.46, 24]} />
+            <meshBasicMaterial color={player.color} transparent opacity={0.35} />
+          </mesh>
+          <Sparkles count={10} scale={[0.9, 1.2, 0.9]} size={2} speed={0.4} opacity={0.7} color={player.color} />
+        </>
+      )}
     </group>
   );
 }

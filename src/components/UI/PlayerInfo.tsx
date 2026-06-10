@@ -21,6 +21,7 @@ export function PlayerInfo({ players, currentPlayerIndex }: PlayerInfoProps) {
                   transform: 'translateX(-50%)',
                   background: player.color,
                   color: '#fff',
+                  fontFamily: 'var(--font-body)',
                   fontSize: '9px',
                   fontWeight: 700,
                   letterSpacing: '0.08em',

@@ -66,19 +66,25 @@ export function ImmersiveMinimap({ positions, players, currentPlayerIndex }: Imm
     });
   }, [points2D]);
 
+  const activePlayer = players[currentPlayerIndex];
+  const progress = activePlayer ? Math.min(100, Math.max(0, activePlayer.position)) : 0;
+
   return (
     <div
-      className="rounded-lg overflow-hidden"
-      style={{
-        background: 'rgba(0, 0, 0, 0.5)',
-        backdropFilter: 'blur(12px)',
-        WebkitBackdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255, 255, 255, 0.15)',
-        width: MAP_WIDTH,
-        height: MAP_HEIGHT,
-      }}
+      className="hud-panel overflow-hidden"
+      style={{ width: MAP_WIDTH }}
     >
       <svg width={MAP_WIDTH} height={MAP_HEIGHT} viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}>
+        <defs>
+          <filter id="minimap-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+
         {/* Zone path segments */}
         {zonePaths.map((zp) => {
           if (!zp) return null;
@@ -87,9 +93,11 @@ export function ImmersiveMinimap({ positions, players, currentPlayerIndex }: Imm
               key={zp.name}
               d={zp.d}
               stroke={zp.color}
-              strokeWidth={2}
+              strokeWidth={2.5}
+              strokeLinecap="round"
+              strokeLinejoin="round"
               fill="none"
-              opacity={0.7}
+              opacity={0.75}
             />
           );
         })}
@@ -105,18 +113,37 @@ export function ImmersiveMinimap({ positions, players, currentPlayerIndex }: Imm
             stroke="#fff"
             strokeWidth={1}
             opacity={idx === currentPlayerIndex ? 1 : 0.7}
+            filter={idx === currentPlayerIndex ? 'url(#minimap-glow)' : undefined}
           >
             {idx === currentPlayerIndex && (
               <animate
                 attributeName="r"
-                values="4;5;4"
-                dur="1s"
+                values="4;5.5;4"
+                dur="1.4s"
                 repeatCount="indefinite"
               />
             )}
           </circle>
         ))}
       </svg>
+
+      {/* Progress to 100 */}
+      <div className="px-2 pb-2">
+        <div className="flex items-center justify-between text-[10px] text-white/50 mb-1" style={{ fontFamily: 'var(--font-body)', fontWeight: 600 }}>
+          <span>1</span>
+          <span className="text-white/80 font-bold">{progress}/100</span>
+          <span>100</span>
+        </div>
+        <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.12)' }}>
+          <div
+            className="h-full rounded-full transition-all duration-500"
+            style={{
+              width: `${progress}%`,
+              background: 'linear-gradient(90deg, var(--color-aurora-green), var(--color-aurora-cyan), var(--color-aurora-orange), var(--color-aurora-yellow))',
+            }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

@@ -74,7 +74,8 @@ export function DiceSelector({ onSelect, disabled, autoSpin }: DiceSelectorProps
       <div
         className="relative rounded-2xl p-1"
         style={{
-          background: 'linear-gradient(180deg, #2a2a4a 0%, #1a1a2e 100%)',
+          background: 'linear-gradient(180deg, var(--color-nebula-light) 0%, var(--color-nebula-mid) 100%)',
+          border: '1px solid rgba(255,255,255,0.15)',
           boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.5), 0 4px 20px rgba(0,0,0,0.3)',
         }}
       >
@@ -84,7 +85,7 @@ export function DiceSelector({ onSelect, disabled, autoSpin }: DiceSelectorProps
           style={{
             width: 200,
             height: 120,
-            background: 'linear-gradient(180deg, #0f0f1a 0%, #1a1a2e 100%)',
+            background: 'linear-gradient(180deg, var(--color-void) 0%, var(--color-nebula-mid) 100%)',
           }}
         >
           {/* Highlight bar */}
@@ -120,11 +121,11 @@ export function DiceSelector({ onSelect, disabled, autoSpin }: DiceSelectorProps
 
               {/* Dice name */}
               <div
-                className="text-sm font-bold tracking-wide"
+                className="text-sm font-display tracking-wide"
                 style={{
                   color: config.color,
-                  fontFamily: "'Bangers', sans-serif",
                   letterSpacing: '0.05em',
+                  textShadow: `0 0 12px ${config.color}60`,
                 }}
               >
                 {config.name}
@@ -137,35 +138,25 @@ export function DiceSelector({ onSelect, disabled, autoSpin }: DiceSelectorProps
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                background: 'linear-gradient(180deg, rgba(15,15,26,0.8) 0%, transparent 30%, transparent 70%, rgba(15,15,26,0.8) 100%)',
+                background: 'linear-gradient(180deg, rgba(15,15,35,0.85) 0%, transparent 30%, transparent 70%, rgba(15,15,35,0.85) 100%)',
               }}
             />
           )}
         </div>
 
         {/* Side decorations */}
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 rounded-full bg-gradient-to-b from-yellow-400/50 to-orange-500/50" />
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-16 rounded-full bg-gradient-to-b from-yellow-400/50 to-orange-500/50" />
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-16 rounded-full bg-gradient-to-b from-aurora-yellow/50 to-aurora-orange/50" />
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-16 rounded-full bg-gradient-to-b from-aurora-yellow/50 to-aurora-orange/50" />
       </div>
 
       {/* Spin button */}
       {!finalDice && (
         <motion.button
-          className="px-8 py-3 rounded-xl text-lg font-bold text-white"
-          style={{
-            fontFamily: "'Bangers', sans-serif",
-            background: isSpinning
-              ? 'linear-gradient(135deg, #666 0%, #444 100%)'
-              : 'linear-gradient(135deg, #E84855 0%, #D62839 100%)',
-            boxShadow: isSpinning
-              ? '0 4px 0 #333'
-              : '0 6px 0 #9B1B30, 0 8px 20px rgba(232, 72, 85, 0.3)',
-            letterSpacing: '0.05em',
-          }}
+          className="btn btn-pink"
           onClick={spin}
           disabled={disabled || isSpinning}
-          whileHover={!isSpinning ? { y: -2, boxShadow: '0 8px 0 #9B1B30, 0 12px 30px rgba(232, 72, 85, 0.4)' } : {}}
-          whileTap={!isSpinning ? { y: 4, boxShadow: '0 2px 0 #9B1B30' } : {}}
+          whileHover={!isSpinning ? { y: -2 } : {}}
+          whileTap={!isSpinning ? { y: 4 } : {}}
         >
           {isSpinning ? 'Spinning...' : 'Spin for Dice!'}
         </motion.button>
@@ -178,8 +169,18 @@ export function DiceSelector({ onSelect, disabled, autoSpin }: DiceSelectorProps
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
         >
-          <p className="text-[var(--color-text-secondary)] text-sm">
-            You got the <span style={{ color: DICE_CONFIG[finalDice].color, fontWeight: 'bold' }}>{DICE_CONFIG[finalDice].name}</span>!
+          <p className="text-[var(--color-text-secondary)] text-sm font-body">
+            You got the{' '}
+            <span
+              className="font-display text-base tracking-wide"
+              style={{
+                color: DICE_CONFIG[finalDice].color,
+                textShadow: `0 0 14px ${DICE_CONFIG[finalDice].color}70`,
+              }}
+            >
+              {DICE_CONFIG[finalDice].name}
+            </span>
+            !
           </p>
         </motion.div>
       )}

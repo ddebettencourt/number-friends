@@ -23,6 +23,28 @@ interface PlayerResult {
 
 type Phase = 'pass' | 'playing' | 'ai_turn' | 'results';
 
+// Small decorative icons (token colors via currentColor)
+function RobotIcon({ size = 14 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <rect x="4" y="8" width="16" height="11" rx="3" stroke="currentColor" strokeWidth="2" />
+      <circle cx="9.5" cy="13" r="1.5" fill="currentColor" />
+      <circle cx="14.5" cy="13" r="1.5" fill="currentColor" />
+      <path d="M12 8V4.5M9.5 4.5h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function TrophyIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true" className="text-aurora-yellow">
+      <path d="M7 3h10v6a5 5 0 0 1-10 0V3z" fill="currentColor" />
+      <path d="M7 5H4a3 3 0 0 0 3 4M17 5h3a3 3 0 0 1-3 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M12 14v4M8.5 20h7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function RootRace({ type }: RootRaceProps) {
   const { players, currentPlayerIndex, endMinigame, aiPlayers } = useGameStore();
   const triggeringPlayer = players[currentPlayerIndex];
@@ -63,8 +85,11 @@ export function RootRace({ type }: RootRaceProps) {
   const title = type === 'square' ? 'Root Race!' : 'Cube Root Challenge!';
   const question = type === 'square' ? 'What is the square root?' : 'What is the cube root?';
   const emoji = type === 'square' ? '√' : '∛';
-  const gradientFrom = type === 'square' ? 'from-purple-500' : 'from-orange-500';
-  const gradientTo = type === 'square' ? 'to-indigo-600' : 'to-red-500';
+  const gradientFrom = type === 'square' ? 'from-aurora-purple' : 'from-aurora-orange';
+  const gradientTo = type === 'square' ? 'to-aurora-purple-deep' : 'to-aurora-pink';
+  const accentText = type === 'square' ? 'text-aurora-purple' : 'text-aurora-orange';
+  const btnColor = type === 'square' ? 'btn-purple' : 'btn-orange';
+  const activeDot = type === 'square' ? 'bg-aurora-purple' : 'bg-aurora-orange';
 
   // Move to next player
   const moveToNextPlayer = useCallback((updatedResults: PlayerResult[]) => {
@@ -238,24 +263,25 @@ export function RootRace({ type }: RootRaceProps) {
   // AI playing screen
   if (phase === 'ai_turn') {
     return (
-      <div className="game-card rounded-3xl p-6 shadow-2xl">
+      <div className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6">
         <div className="text-center mb-4">
-          <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${gradientFrom} ${gradientTo} text-white text-3xl font-bold mb-2`}>
+          <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${gradientFrom} ${gradientTo} text-white text-3xl font-display mb-2`}>
             {emoji}
           </div>
-          <h2 className={`text-2xl font-black bg-gradient-to-r ${gradientFrom} ${gradientTo} bg-clip-text text-transparent`}>
+          <div className="label-caps mb-1">Minigame</div>
+          <h2 className={`heading-2 ${accentText}`}>
             {title}
           </h2>
         </div>
 
         {/* Number to solve */}
         <div className="text-center mb-6">
-          <div className={`text-4xl font-black bg-gradient-to-r ${gradientFrom} ${gradientTo} bg-clip-text text-transparent mb-2`}>
+          <div className={`big-number ${accentText} mb-2`}>
             {emoji}{challenge.number.toLocaleString()}
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-3 p-4 wood-inset rounded-xl">
+        <div className="flex items-center justify-center gap-3 p-4 glass-inset rounded-xl">
           <div
             className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shadow-inner"
             style={{ backgroundColor: activePlayer?.color }}
@@ -265,11 +291,11 @@ export function RootRace({ type }: RootRaceProps) {
           <div>
             <p className="font-bold text-[var(--color-text-primary)]">{activePlayer?.name}</p>
             <motion.p
-              className="text-sm text-[var(--color-text-secondary)]"
+              className="text-sm text-[var(--color-text-secondary)] inline-flex items-center gap-1.5"
               animate={{ opacity: [0.5, 1, 0.5] }}
               transition={{ duration: 1, repeat: Infinity }}
             >
-              🤖 Calculating...
+              <RobotIcon size={14} /> Calculating...
             </motion.p>
           </div>
         </div>
@@ -281,10 +307,10 @@ export function RootRace({ type }: RootRaceProps) {
               key={idx}
               className={`w-3 h-3 rounded-full ${
                 idx < activePlayerIndex
-                  ? 'bg-green-500'
+                  ? 'bg-aurora-green'
                   : idx === activePlayerIndex
-                  ? type === 'square' ? 'bg-purple-500' : 'bg-orange-500'
-                  : 'bg-gray-200'
+                  ? activeDot
+                  : 'bg-white/15'
               }`}
             />
           ))}
@@ -303,15 +329,17 @@ export function RootRace({ type }: RootRaceProps) {
 
     return (
       <motion.div
-        className="game-card rounded-3xl p-6 shadow-2xl"
-        initial={{ opacity: 0, scale: 0.9 }}
+        className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6 max-h-[90dvh] overflow-y-auto"
+        initial={{ opacity: 0, scale: 0.93 }}
         animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 25 }}
       >
         <div className="text-center mb-4">
-          <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${gradientFrom} ${gradientTo} text-white text-3xl font-bold mb-2`}>
+          <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${gradientFrom} ${gradientTo} text-white text-3xl font-display mb-2`}>
             {emoji}
           </div>
-          <h2 className={`text-2xl font-black bg-gradient-to-r ${gradientFrom} ${gradientTo} bg-clip-text text-transparent`}>
+          <div className="label-caps mb-1">{title}</div>
+          <h2 className={`heading-2 ${accentText}`}>
             Results!
           </h2>
           <p className="text-[var(--color-text-secondary)]">
@@ -329,26 +357,29 @@ export function RootRace({ type }: RootRaceProps) {
                 style={
                   isWinner
                     ? {
-                        background: 'linear-gradient(135deg, rgba(255, 217, 61, 0.25) 0%, rgba(255, 159, 67, 0.15) 100%)',
-                        border: '2px solid rgba(255, 217, 61, 0.6)',
-                        boxShadow: '0 0 15px rgba(255, 217, 61, 0.3)',
+                        background: 'linear-gradient(135deg, rgba(255, 230, 109, 0.22) 0%, rgba(249, 160, 63, 0.14) 100%)',
+                        border: '2px solid rgba(255, 230, 109, 0.55)',
+                        boxShadow: '0 0 15px rgba(255, 230, 109, 0.25)',
+                        borderLeft: `4px solid ${result.playerColor}`,
                       }
                     : result.difference === 0
                     ? {
-                        background: 'rgba(152, 236, 101, 0.15)',
-                        border: '1px solid rgba(152, 236, 101, 0.3)',
+                        background: 'rgba(95, 173, 86, 0.15)',
+                        border: '1px solid rgba(95, 173, 86, 0.4)',
+                        borderLeft: `4px solid ${result.playerColor}`,
                       }
                     : {
                         background: 'rgba(255, 255, 255, 0.05)',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderLeft: `4px solid ${result.playerColor}`,
                       }
                 }
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: idx * 0.1 }}
+                transition={{ delay: idx * 0.1, type: 'spring', stiffness: 350, damping: 25 }}
               >
                 <div className="flex items-center gap-3">
-                  {isWinner && <span className="text-xl">🏆</span>}
+                  {isWinner && <TrophyIcon size={20} />}
                   <div
                     className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
                     style={{ backgroundColor: result.playerColor }}
@@ -356,11 +387,15 @@ export function RootRace({ type }: RootRaceProps) {
                     {result.playerAvatar}
                   </div>
                   <span className="font-bold text-[var(--color-text-primary)]">{result.playerName}</span>
-                  {result.isAI && <span className="text-xs text-[var(--color-text-muted)]">🤖</span>}
+                  {result.isAI && (
+                    <span className="text-xs text-[var(--color-text-muted)] inline-flex items-center gap-1">
+                      <RobotIcon size={12} /> AI
+                    </span>
+                  )}
                 </div>
                 <div className="text-right">
                   <div className="font-bold text-[var(--color-text-primary)]">{result.guess}</div>
-                  <div className={`text-xs ${result.difference === 0 ? 'text-[#98ec65]' : 'text-[var(--color-text-secondary)]'}`}>
+                  <div className={`text-xs ${result.difference === 0 ? 'text-aurora-green' : 'text-[var(--color-text-secondary)]'}`}>
                     {result.difference === 0 ? 'Perfect!' : `off by ${result.difference?.toFixed(2)}`}
                   </div>
                 </div>
@@ -378,7 +413,7 @@ export function RootRace({ type }: RootRaceProps) {
         </div>
 
         <motion.button
-          className={`w-full py-3 bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white font-bold text-lg rounded-xl`}
+          className={`btn ${btnColor} w-full`}
           onClick={handleContinue}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -391,13 +426,14 @@ export function RootRace({ type }: RootRaceProps) {
 
   // Playing phase - human player's turn
   return (
-    <div className="game-card rounded-3xl p-6 shadow-2xl">
+    <div className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6">
       {/* Header */}
       <div className="text-center mb-4">
-        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${gradientFrom} ${gradientTo} text-white text-3xl font-bold mb-2`}>
+        <div className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br ${gradientFrom} ${gradientTo} text-white text-3xl font-display mb-2`}>
           {emoji}
         </div>
-        <h2 className={`text-2xl font-black bg-gradient-to-r ${gradientFrom} ${gradientTo} bg-clip-text text-transparent`}>
+        <div className="label-caps mb-1">Minigame</div>
+        <h2 className={`heading-2 ${accentText}`}>
           {title}
         </h2>
         <p className="text-[var(--color-text-secondary)]">{question} <span className="text-xs">(decimals allowed!)</span></p>
@@ -405,7 +441,7 @@ export function RootRace({ type }: RootRaceProps) {
 
       {/* Current player indicator */}
       <div className="text-center mb-4">
-        <div className="inline-flex items-center gap-2 wood-inset px-4 py-2 rounded-full">
+        <div className="inline-flex items-center gap-2 glass-inset px-4 py-2 rounded-full">
           <div
             className="w-6 h-6 rounded-lg flex items-center justify-center text-xs"
             style={{ backgroundColor: activePlayer?.color }}
@@ -419,7 +455,7 @@ export function RootRace({ type }: RootRaceProps) {
       {/* Timer */}
       <div className="flex justify-center mb-4">
         <motion.div
-          className={`text-4xl font-black ${timeLeft <= 5 ? 'text-red-500' : 'text-[var(--color-text-primary)]'}`}
+          className={`font-display text-4xl ${timeLeft <= 5 ? 'text-aurora-pink' : 'text-[var(--color-text-primary)]'}`}
           animate={timeLeft <= 5 ? { scale: [1, 1.15, 1] } : {}}
           transition={{ duration: 0.5, repeat: timeLeft <= 5 ? Infinity : 0 }}
         >
@@ -429,7 +465,7 @@ export function RootRace({ type }: RootRaceProps) {
 
       {/* Number to solve */}
       <div className="text-center mb-6">
-        <div className={`text-4xl font-black bg-gradient-to-r ${gradientFrom} ${gradientTo} bg-clip-text text-transparent mb-2`}>
+        <div className={`big-number ${accentText} mb-2`}>
           {emoji}{challenge.number.toLocaleString()}
         </div>
       </div>
@@ -443,27 +479,23 @@ export function RootRace({ type }: RootRaceProps) {
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          className={`w-40 text-center text-3xl font-black p-4 border-4 rounded-2xl focus:outline-none transition-colors bg-white text-gray-800 ${
-            type === 'square'
-              ? 'border-purple-200 focus:border-purple-500'
-              : 'border-orange-200 focus:border-orange-500'
-          }`}
+          className="w-40 text-center text-3xl font-bold rounded-2xl"
           placeholder="?"
         />
         <div className="flex gap-3">
           <motion.button
-            className={`px-8 py-3 bg-gradient-to-r ${gradientFrom} ${gradientTo} text-white font-bold text-lg rounded-xl shadow-lg`}
+            className={`btn ${btnColor}`}
             onClick={handleSubmit}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
             Submit
           </motion.button>
           <motion.button
-            className="px-6 py-3 bg-gray-200 text-gray-600 font-bold rounded-xl"
+            className="btn btn-ghost"
             onClick={handleSkip}
-            whileHover={{ scale: 1.05, backgroundColor: '#e5e7eb' }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
           >
             Skip
           </motion.button>
@@ -477,10 +509,10 @@ export function RootRace({ type }: RootRaceProps) {
             key={idx}
             className={`w-3 h-3 rounded-full ${
               idx < activePlayerIndex
-                ? 'bg-green-500'
+                ? 'bg-aurora-green'
                 : idx === activePlayerIndex
-                ? type === 'square' ? 'bg-purple-500' : 'bg-orange-500'
-                : 'bg-gray-200'
+                ? activeDot
+                : 'bg-white/15'
             }`}
           />
         ))}

@@ -18,7 +18,7 @@ export function CatchUpBouncePage() {
   return (
     <div className="py-4 space-y-4">
       <motion.h3
-        className="text-lg text-[#c678dd] font-bold mb-4 text-center"
+        className="text-lg text-aurora-purple font-bold mb-4 text-center"
         style={{ fontFamily: 'var(--font-display)' }}
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -52,14 +52,14 @@ export function CatchUpBouncePage() {
                 background: n === 100
                   ? 'rgba(255, 230, 109, 0.3)'
                   : bounceStep === 2 && n === 97
-                  ? 'rgba(198, 120, 221, 0.3)'
+                  ? 'rgba(155, 89, 182, 0.3)'
                   : 'rgba(255,255,255,0.08)',
                 border: n === 100
-                  ? '2px solid #FFE66D'
+                  ? '2px solid var(--color-aurora-yellow)'
                   : bounceStep === 2 && n === 97
-                  ? '2px solid #c678dd'
+                  ? '2px solid var(--color-aurora-purple)'
                   : '1px solid rgba(255,255,255,0.15)',
-                color: n === 100 ? '#FFE66D' : 'rgba(255,255,255,0.6)',
+                color: n === 100 ? 'var(--color-aurora-yellow)' : 'rgba(255,255,255,0.6)',
               }}
               animate={bounceStep === 1 && n === 100 ? {
                 scale: [1, 1.2, 1],
@@ -81,7 +81,7 @@ export function CatchUpBouncePage() {
               animate={{ opacity: 1 }}
             >
               <div className="text-sm text-white/60" style={{ fontFamily: 'var(--font-body)' }}>
-                At 98, rolls <span className="font-bold text-[#c678dd]" style={{ fontFamily: 'var(--font-display)' }}>5</span>
+                At 98, rolls <span className="font-bold text-aurora-purple" style={{ fontFamily: 'var(--font-display)' }}>5</span>
               </div>
             </motion.div>
           )}
@@ -96,7 +96,7 @@ export function CatchUpBouncePage() {
                 {/* Forward arrow */}
                 <motion.path
                   d="M30 22 L175 22"
-                  stroke="rgba(198,120,221,0.5)"
+                  stroke="rgba(155,89,182,0.5)"
                   strokeWidth="2"
                   strokeDasharray="4 3"
                   fill="none"
@@ -107,7 +107,7 @@ export function CatchUpBouncePage() {
                 {bounceStep === 2 && (
                   <motion.path
                     d="M175 22 Q185 5 155 10 L95 17"
-                    stroke="#c678dd"
+                    stroke="var(--color-aurora-purple)"
                     strokeWidth="2"
                     fill="none"
                     initial={{ pathLength: 0 }}
@@ -122,7 +122,7 @@ export function CatchUpBouncePage() {
           {bounceStep === 2 && (
             <motion.p
               className="absolute bottom-0 left-0 right-0 text-center text-sm font-bold"
-              style={{ fontFamily: 'var(--font-display)', color: '#c678dd' }}
+              style={{ fontFamily: 'var(--font-display)', color: 'var(--color-aurora-purple)' }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >

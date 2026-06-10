@@ -30,7 +30,7 @@ export function ChutesAndLadders() {
                   y1={y1}
                   x2={x2 - 1.5}
                   y2={y2}
-                  stroke="#22c55e"
+                  stroke="var(--color-aurora-green)"
                   strokeWidth="0.8"
                   strokeLinecap="round"
                 />
@@ -39,7 +39,7 @@ export function ChutesAndLadders() {
                   y1={y1}
                   x2={x2 + 1.5}
                   y2={y2}
-                  stroke="#22c55e"
+                  stroke="var(--color-aurora-green)"
                   strokeWidth="0.8"
                   strokeLinecap="round"
                 />
@@ -54,7 +54,7 @@ export function ChutesAndLadders() {
                       y1={ry}
                       x2={rx + 1.5}
                       y2={ry}
-                      stroke="#22c55e"
+                      stroke="var(--color-aurora-green)"
                       strokeWidth="0.6"
                     />
                   );
@@ -65,7 +65,7 @@ export function ChutesAndLadders() {
               <path
                 d={`M ${x1} ${y1} Q ${(x1 + x2) / 2 + 5} ${(y1 + y2) / 2} ${x2} ${y2}`}
                 fill="none"
-                stroke="#ef4444"
+                stroke="var(--color-aurora-pink)"
                 strokeWidth="2"
                 strokeLinecap="round"
                 opacity="0.7"

@@ -101,15 +101,23 @@ export function ImmersiveCamera({ target, pathPositions, playerPosition, movePat
     const baseDistance = 7;
     const distance = baseDistance + transitionBonus;
 
+    // Subtle idle "breathing": when the player isn't moving, the camera
+    // gently drifts and bobs so the scene never feels frozen.
+    const isMoving = movePath.length > 1;
+    const t = state.clock.elapsedTime;
+    const idle = isMoving ? 0 : 1;
+    const swayX = Math.sin(t * 0.25) * 0.6 * idle;
+    const bobY = Math.sin(t * 0.5) * 0.25 * idle;
+
     _desiredCam.set(
-      tx - dirX * distance,
-      ty + 5 + transitionHeight,
+      tx - dirX * distance + swayX,
+      ty + 5 + transitionHeight + bobY,
       tz - dirZ * distance + 1.5
     );
 
-    // Look slightly ahead of the player
+    // Look slightly ahead of the player (with a faint idle drift)
     _desiredTarget.set(
-      tx + dirX * 1.5,
+      tx + dirX * 1.5 + swayX * 0.3,
       ty + 0.8,
       tz + dirZ * 1.5
     );
@@ -118,9 +126,8 @@ export function ImmersiveCamera({ target, pathPositions, playerPosition, movePat
     _desiredCam.y = Math.max(_desiredCam.y, ty + 3);
 
     // Smooth lerp — faster during movement for better tracking
-    const isMoving = movePath.length > 1;
-    const posLerp = isMoving ? 0.06 : 0.035;
-    const targetLerp = isMoving ? 0.09 : 0.06;
+    const posLerp = isMoving ? 0.06 : 0.03;
+    const targetLerp = isMoving ? 0.09 : 0.05;
 
     currentCamPos.current.lerp(_desiredCam, posLerp);
     currentTarget.current.lerp(_desiredTarget, targetLerp);

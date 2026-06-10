@@ -1,12 +1,12 @@
 import { motion } from 'framer-motion';
 
 const SPECIAL_COLORS: { type: string; color: string; examples: string }[] = [
-  { type: 'Prime', color: '#61DAFB', examples: '2, 3, 5, 7, 11...' },
-  { type: 'Fibonacci', color: '#98EC65', examples: '1, 2, 3, 5, 8, 13...' },
-  { type: 'Perfect Square', color: '#c678dd', examples: '4, 9, 16, 25...' },
+  { type: 'Prime', color: '#3185FC', examples: '2, 3, 5, 7, 11...' },
+  { type: 'Fibonacci', color: '#5FAD56', examples: '1, 2, 3, 5, 8, 13...' },
+  { type: 'Perfect Square', color: '#9B59B6', examples: '4, 9, 16, 25...' },
   { type: 'Multiple of 10', color: '#FFE66D', examples: '10, 20, 30...' },
-  { type: 'Perfect Cube', color: '#FF9F43', examples: '8, 27, 64' },
-  { type: 'Abundant', color: '#56D4C8', examples: '12, 18, 24...' },
+  { type: 'Perfect Cube', color: '#F9A03F', examples: '8, 27, 64' },
+  { type: 'Abundant', color: '#4ECDC4', examples: '12, 18, 24...' },
 ];
 
 export function BoardPage() {
@@ -28,10 +28,10 @@ export function BoardPage() {
           // Determine special color
           let bg = 'rgba(255,255,255,0.06)';
           const n = 101 - displayNum;
-          if ([2,3,5,7,11,13,17,19,23,29,31,37,41,43,47].includes(n)) bg = 'rgba(97,218,251,0.25)';
+          if ([2,3,5,7,11,13,17,19,23,29,31,37,41,43,47].includes(n)) bg = 'rgba(49,133,252,0.25)';
           else if ([10,20,30,40,50,60,70,80,90,100].includes(n)) bg = 'rgba(255,230,109,0.25)';
-          else if ([1,4,9,16,25,36,49,64,81].includes(n)) bg = 'rgba(198,120,221,0.2)';
-          else if ([8,21,34,55,89].includes(n)) bg = 'rgba(152,236,101,0.2)';
+          else if ([1,4,9,16,25,36,49,64,81].includes(n)) bg = 'rgba(155,89,182,0.2)';
+          else if ([8,21,34,55,89].includes(n)) bg = 'rgba(95,173,86,0.2)';
 
           const isStart = n === 1;
           const isEnd = n === 100;
@@ -41,7 +41,7 @@ export function BoardPage() {
               key={i}
               className="aspect-square rounded-sm flex items-center justify-center"
               style={{
-                background: isStart ? 'rgba(34,197,94,0.4)' : isEnd ? 'rgba(255,230,109,0.4)' : bg,
+                background: isStart ? 'rgba(95,173,86,0.4)' : isEnd ? 'rgba(255,230,109,0.4)' : bg,
                 fontSize: '6px',
                 color: 'rgba(255,255,255,0.5)',
               }}

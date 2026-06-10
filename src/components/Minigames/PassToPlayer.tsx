@@ -22,9 +22,10 @@ export function PassToPlayer({
 }: PassToPlayerProps) {
   return (
     <motion.div
-      className="game-card rounded-3xl p-8 shadow-2xl text-center"
-      initial={{ scale: 0.9, opacity: 0 }}
+      className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6 max-h-[90dvh] overflow-y-auto text-center"
+      initial={{ scale: 0.95, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 350, damping: 25 }}
     >
       {/* Pass device indicator */}
       <motion.div
@@ -33,7 +34,7 @@ export function PassToPlayer({
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
       >
-        <div className="text-[var(--color-text-muted)] text-sm font-medium mb-2 uppercase tracking-wider">
+        <div className="label-caps mb-2">
           Pass device to
         </div>
         <div className="flex items-center justify-center gap-3">
@@ -46,10 +47,10 @@ export function PassToPlayer({
             {player.avatar}
           </motion.div>
           <div className="text-left">
-            <div className="text-2xl font-black text-[var(--color-text-primary)]">
+            <div className="heading-2 text-[var(--color-text-primary)]">
               {player.name}
             </div>
-            <div className="text-[var(--color-text-muted)] text-sm">
+            <div className="font-body text-[var(--color-text-muted)] text-sm">
               Square {player.position}
             </div>
           </div>
@@ -57,7 +58,7 @@ export function PassToPlayer({
       </motion.div>
 
       {/* Divider */}
-      <div className="w-16 h-1 mx-auto bg-gradient-to-r from-transparent via-[var(--color-wood-light)] to-transparent mb-6" />
+      <div className="w-16 h-1 mx-auto bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.25)] to-transparent mb-6" />
 
       {/* Minigame info */}
       <motion.div
@@ -65,18 +66,18 @@ export function PassToPlayer({
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <h2 className="text-3xl font-black text-[var(--color-text-primary)] mb-2">
+        <h2 className="heading-1 text-gradient-cyan mb-2">
           {minigameName}
         </h2>
-        <p className="text-[var(--color-text-secondary)] mb-2">
+        <p className="font-body text-[var(--color-text-secondary)] mb-2">
           {minigameDescription}
         </p>
         {stakes && (
-          <p className="text-xs font-medium px-3 py-1.5 rounded-lg inline-block"
+          <p className="font-body text-xs font-medium px-3 py-1.5 rounded-lg inline-block"
             style={{
-              background: 'rgba(255, 217, 61, 0.15)',
+              background: 'rgba(255, 230, 109, 0.12)',
               color: 'var(--color-text-secondary)',
-              border: '1px solid rgba(255, 217, 61, 0.3)',
+              border: '1px solid rgba(255, 230, 109, 0.35)',
             }}
           >
             {stakes}
@@ -87,12 +88,12 @@ export function PassToPlayer({
       {/* Multiplayer indicator */}
       {isMultiplayer && allPlayers.length > 1 && (
         <motion.div
-          className="wood-inset rounded-2xl p-4 mb-6"
+          className="glass-inset p-4 mb-6"
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.3 }}
         >
-          <div className="text-[var(--color-text-muted)] text-xs font-medium mb-2 uppercase">
+          <div className="label-caps mb-2">
             All Players Compete
           </div>
           <div className="flex flex-wrap justify-center gap-2">
@@ -121,7 +122,7 @@ export function PassToPlayer({
 
       {/* Ready button */}
       <motion.button
-        className="game-button w-full py-4 piece-emerald text-white font-bold text-xl rounded-2xl shadow-lg"
+        className="btn btn-green btn-lg w-full"
         onClick={onReady}
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -132,17 +133,21 @@ export function PassToPlayer({
         <span className="flex items-center justify-center gap-2">
           <span>I'm Ready!</span>
           <motion.span
+            className="inline-flex"
             animate={{ x: [0, 4, 0] }}
             transition={{ duration: 1, repeat: Infinity }}
           >
-
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M5 12h14" />
+              <path d="M13 6l6 6-6 6" />
+            </svg>
           </motion.span>
         </span>
       </motion.button>
 
       {/* Tap hint */}
       <motion.p
-        className="text-[var(--color-text-muted)] text-xs mt-4"
+        className="font-body text-[var(--color-text-muted)] text-xs mt-4"
         animate={{ opacity: [0.5, 1, 0.5] }}
         transition={{ duration: 2, repeat: Infinity }}
       >

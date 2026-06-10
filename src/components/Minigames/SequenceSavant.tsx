@@ -89,6 +89,27 @@ function generateSequence(): SequenceChallenge {
   return { type, sequence: displaySequence, answer, hint };
 }
 
+function TrophyIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d="M7 3h10v5a5 5 0 01-10 0V3z"
+        fill="var(--color-aurora-yellow)"
+        stroke="var(--color-aurora-yellow-deep)"
+        strokeWidth="1"
+      />
+      <path
+        d="M7 4H4a3 3 0 003 4M17 4h3a3 3 0 01-3 4"
+        stroke="var(--color-aurora-yellow)"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <path d="M12 13v4" stroke="var(--color-aurora-orange)" strokeWidth="2" strokeLinecap="round" />
+      <path d="M8.5 20a1 1 0 011-1h5a1 1 0 011 1v1h-7v-1z" fill="var(--color-aurora-orange)" />
+    </svg>
+  );
+}
+
 export function SequenceSavant() {
   const { players, currentPlayerIndex, endMinigame, aiPlayers } = useGameStore();
   const triggeringPlayer = players[currentPlayerIndex];
@@ -308,10 +329,11 @@ export function SequenceSavant() {
   // AI playing
   if (phase === 'ai_turn') {
     return (
-      <div className="game-card rounded-2xl p-6 shadow-2xl">
+      <div className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6">
         <div className="text-center mb-4">
-          <h2 className="text-2xl font-bold text-emerald-600">Sequence Savant!</h2>
-          <p className="text-[var(--color-text-secondary)]">AI is playing...</p>
+          <div className="label-caps mb-1">Minigame</div>
+          <h2 className="heading-2 text-aurora-green">Sequence Savant!</h2>
+          <p className="font-body text-[var(--color-text-secondary)]">AI is playing...</p>
         </div>
 
         {/* Show the sequence */}
@@ -319,11 +341,14 @@ export function SequenceSavant() {
           {challenge.sequence.map((num, index) => (
             <div
               key={index}
-              className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-bold shadow-md ${
-                num === null
-                  ? 'bg-emerald-100 border-2 border-emerald-400 border-dashed text-emerald-600'
-                  : 'bg-emerald-500 text-white'
+              className={`w-12 h-12 rounded-xl flex items-center justify-center text-lg font-display ${
+                num === null ? 'text-aurora-green' : 'piece-emerald text-white'
               }`}
+              style={
+                num === null
+                  ? { background: 'rgba(95, 173, 86, 0.12)', border: '2px dashed rgba(95, 173, 86, 0.5)' }
+                  : undefined
+              }
             >
               {num ?? '?'}
             </div>
@@ -335,8 +360,8 @@ export function SequenceSavant() {
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 1, repeat: Infinity }}
         >
-          <div className="w-16 h-16 mx-auto mb-4 rounded-xl wood-inset flex items-center justify-center">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-[var(--color-wood-medium)]">
+          <div className="w-16 h-16 mx-auto mb-4 glass-inset flex items-center justify-center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" className="text-[var(--color-text-muted)]">
               <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="2" />
               <circle cx="9" cy="10" r="2" fill="currentColor" />
               <circle cx="15" cy="10" r="2" fill="currentColor" />
@@ -365,13 +390,15 @@ export function SequenceSavant() {
 
     return (
       <motion.div
-        className="game-card rounded-2xl p-4 sm:p-6 shadow-2xl"
-        initial={{ opacity: 0, scale: 0.9 }}
+        className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6 max-h-[90dvh] overflow-y-auto"
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: 'spring', stiffness: 350, damping: 25 }}
       >
         <div className="text-center mb-4">
-          <h2 className="text-2xl font-bold text-emerald-600">Results!</h2>
-          <p className="text-[var(--color-text-muted)]">
+          <div className="label-caps mb-1">Sequence Savant</div>
+          <h2 className="heading-2 text-aurora-green">Results!</h2>
+          <p className="font-body text-[var(--color-text-muted)]">
             Answer: <span className="font-bold text-[var(--color-text-primary)]">{challenge.answer}</span>
             <span className="text-xs ml-2">({challenge.hint})</span>
           </p>
@@ -380,42 +407,44 @@ export function SequenceSavant() {
         <div className="space-y-2 mb-4">
           {sortedResults.map((result, idx) => {
             const isWinner = idx === 0 && result.isCorrect;
+            const playerColor = players.find(p => p.id === result.playerId)?.color;
             return (
               <motion.div
                 key={result.playerId}
                 className="p-3 rounded-xl"
-                style={
-                  isWinner
+                style={{
+                  ...(isWinner
                     ? {
-                        background: 'linear-gradient(135deg, rgba(255, 217, 61, 0.25) 0%, rgba(255, 159, 67, 0.15) 100%)',
-                        border: '2px solid rgba(255, 217, 61, 0.6)',
-                        boxShadow: '0 0 15px rgba(255, 217, 61, 0.3)',
+                        background: 'linear-gradient(135deg, rgba(255, 230, 109, 0.18) 0%, rgba(249, 160, 63, 0.12) 100%)',
+                        border: '1px solid rgba(255, 230, 109, 0.5)',
+                        boxShadow: '0 0 15px rgba(255, 230, 109, 0.2)',
                       }
                     : result.isCorrect
                     ? {
-                        background: 'rgba(152, 236, 101, 0.15)',
-                        border: '1px solid rgba(152, 236, 101, 0.3)',
+                        background: 'rgba(95, 173, 86, 0.15)',
+                        border: '1px solid rgba(95, 173, 86, 0.4)',
                       }
                     : {
-                        background: 'rgba(255, 107, 157, 0.15)',
-                        border: '1px solid rgba(255, 107, 157, 0.3)',
-                      }
-                }
+                        background: 'rgba(232, 72, 85, 0.15)',
+                        border: '1px solid rgba(232, 72, 85, 0.4)',
+                      }),
+                  borderLeft: `3px solid ${playerColor ?? 'rgba(255, 255, 255, 0.2)'}`,
+                }}
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: idx * 0.1 }}
+                transition={{ delay: idx * 0.1, type: 'spring', stiffness: 350, damping: 25 }}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {isWinner && <span className="text-xl">🏆</span>}
-                    <span className="font-bold text-[var(--color-text-primary)]">{result.playerName}</span>
-                    {result.isAI && <span className="text-xs text-[var(--color-text-muted)]">AI</span>}
+                    {isWinner && <TrophyIcon />}
+                    <span className="font-body font-bold text-[var(--color-text-primary)]">{result.playerName}</span>
+                    {result.isAI && <span className="label-caps">AI</span>}
                   </div>
                   <div className="text-right">
-                    <div className={`font-bold ${result.isCorrect ? 'text-[#98ec65]' : 'text-[#ff6b9d]'}`}>
+                    <div className={`font-display ${result.isCorrect ? 'text-aurora-green' : 'text-aurora-pink'}`}>
                       {result.guess} {result.isCorrect ? '✓' : '✗'}
                     </div>
-                    <div className="text-xs text-[var(--color-text-muted)]">
+                    <div className="text-xs font-body text-[var(--color-text-muted)]">
                       {result.timeToAnswer?.toFixed(1)}s
                     </div>
                   </div>
@@ -427,49 +456,45 @@ export function SequenceSavant() {
 
         <div className="text-center mb-4">
           {winner?.playerId === triggeringPlayer.id ? (
-            <p className="text-green-600 font-bold">
+            <p className="text-aurora-green font-body font-bold">
               Fastest correct! Advance {Math.max(1, Math.ceil((15 - (winner.timeToAnswer || 15)) / 3))} spaces!
             </p>
           ) : playerResults.find(r => r.playerId === triggeringPlayer.id)?.isCorrect ? (
-            <p className="text-blue-600 font-bold">Nice! Advance 1 space.</p>
+            <p className="text-aurora-blue font-body font-bold">Nice! Advance 1 space.</p>
           ) : (
-            <p className="text-[var(--color-text-muted)]">
+            <p className="font-body text-[var(--color-text-muted)]">
               {winner?.playerName || 'No one'} {winner ? 'wins!' : 'got it.'} You stay put.
             </p>
           )}
         </div>
 
-        <motion.button
-          className="w-full py-3 piece-emerald text-white font-bold rounded-xl"
-          onClick={handleContinue}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
+        <button className="btn btn-green w-full" onClick={handleContinue}>
           Continue
-        </motion.button>
+        </button>
       </motion.div>
     );
   }
 
   // Playing phase
   return (
-    <div className="game-card rounded-2xl p-4 sm:p-6 shadow-2xl">
+    <div className="glass-card w-full max-w-lg mx-auto p-4 sm:p-6">
       <div className="text-center mb-4">
-        <h2 className="text-2xl font-bold text-emerald-600">Sequence Savant!</h2>
-        <p className="text-[var(--color-text-secondary)]">Find the missing number!</p>
+        <div className="label-caps mb-1">Minigame</div>
+        <h2 className="heading-2 text-aurora-green">Sequence Savant!</h2>
+        <p className="font-body text-[var(--color-text-secondary)]">Find the missing number!</p>
       </div>
 
       {/* Current player indicator */}
       <div className="text-center mb-4">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full wood-inset">
-          <span className="font-bold text-[var(--color-text-primary)]">{activePlayer?.name}'s turn</span>
+        <div className="inline-flex items-center gap-2 px-4 py-2 glass-inset rounded-full">
+          <span className="font-body font-bold text-[var(--color-text-primary)]">{activePlayer?.name}'s turn</span>
         </div>
       </div>
 
       {/* Timer */}
       <div className="flex justify-center mb-4">
         <motion.div
-          className={`text-4xl font-black ${timeLeft <= 5 ? 'text-red-500' : 'text-[var(--color-text-primary)]'}`}
+          className={`font-display text-4xl ${timeLeft <= 5 ? 'text-aurora-pink' : 'text-[var(--color-text-primary)]'}`}
           animate={timeLeft <= 5 ? { scale: [1, 1.15, 1] } : {}}
           transition={{ duration: 0.5, repeat: timeLeft <= 5 ? Infinity : 0 }}
         >
@@ -483,14 +508,17 @@ export function SequenceSavant() {
           {challenge.sequence.map((num, index) => (
             <motion.div
               key={index}
-              className={`w-14 h-14 rounded-xl flex items-center justify-center text-xl font-bold shadow-md ${
-                num === null
-                  ? 'bg-emerald-100 border-4 border-emerald-400 border-dashed text-emerald-600'
-                  : 'piece-emerald text-white'
+              className={`w-14 h-14 rounded-xl flex items-center justify-center text-xl font-display ${
+                num === null ? 'text-aurora-green' : 'piece-emerald text-white'
               }`}
+              style={
+                num === null
+                  ? { background: 'rgba(95, 173, 86, 0.12)', border: '2px dashed rgba(95, 173, 86, 0.5)' }
+                  : undefined
+              }
               initial={{ scale: 0, rotateY: 180 }}
               animate={{ scale: 1, rotateY: 0 }}
-              transition={{ delay: index * 0.1, type: 'spring' }}
+              transition={{ delay: index * 0.1, type: 'spring', stiffness: 350, damping: 25 }}
             >
               {num ?? '?'}
             </motion.div>
@@ -502,13 +530,13 @@ export function SequenceSavant() {
       <div className="text-center mb-4">
         <button
           onClick={() => setShowHint(!showHint)}
-          className="text-sm text-emerald-600 hover:text-emerald-700 underline"
+          className="text-sm font-body text-aurora-green underline hover:opacity-80"
         >
           {showHint ? 'Hide hint' : 'Show hint'}
         </button>
         {showHint && (
           <motion.p
-            className="text-sm text-[var(--color-text-muted)] mt-1"
+            className="text-sm font-body text-[var(--color-text-muted)] mt-1"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
           >
@@ -525,17 +553,12 @@ export function SequenceSavant() {
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          className="w-32 text-center text-3xl font-black p-4 border-4 border-emerald-200 rounded-2xl focus:outline-none focus:border-emerald-500 transition-colors"
+          className="w-32 text-center text-3xl font-display"
           placeholder="?"
         />
-        <motion.button
-          className="px-8 py-3 piece-emerald text-white font-bold text-lg rounded-xl shadow-lg"
-          onClick={handleSubmit}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
+        <button className="btn btn-green" onClick={handleSubmit}>
           Submit
-        </motion.button>
+        </button>
       </div>
 
       {/* Progress dots */}
@@ -545,10 +568,10 @@ export function SequenceSavant() {
             key={idx}
             className={`w-3 h-3 rounded-full ${
               idx < activePlayerIndex
-                ? 'bg-green-500'
+                ? 'bg-aurora-green/50'
                 : idx === activePlayerIndex
-                ? 'bg-emerald-500'
-                : 'bg-gray-300'
+                ? 'bg-aurora-green'
+                : 'bg-white/20'
             }`}
           />
         ))}

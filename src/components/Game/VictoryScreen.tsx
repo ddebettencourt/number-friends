@@ -105,7 +105,7 @@ export function VictoryScreen({ winner, onPlayAgain }: VictoryScreenProps) {
     };
   }, []);
 
-  const confettiColors = ['#ff6b9d', '#61dafb', '#98ec65', '#c678dd', '#ffd93d'];
+  const confettiColors = ['#E84855', '#3185FC', '#5FAD56', '#9B59B6', '#FFE66D'];
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
@@ -114,7 +114,7 @@ export function VictoryScreen({ winner, onPlayAgain }: VictoryScreenProps) {
         className="absolute inset-0 opacity-60"
         style={{
           background: `radial-gradient(circle at 30% 20%, ${winner.color}40 0%, transparent 50%),
-                       radial-gradient(circle at 70% 80%, #c678dd30 0%, transparent 50%)`,
+                       radial-gradient(circle at 70% 80%, rgba(155, 89, 182, 0.19) 0%, transparent 50%)`,
         }}
       />
 
@@ -168,7 +168,7 @@ export function VictoryScreen({ winner, onPlayAgain }: VictoryScreenProps) {
 
       {/* Main card - scrollable */}
       <motion.div
-        className="relative rounded-3xl p-6 sm:p-10 text-center max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+        className="relative rounded-3xl p-6 sm:p-10 text-center max-w-2xl w-full max-h-[90dvh] overflow-y-auto"
         style={{
           background: 'rgba(255, 255, 255, 0.08)',
           backdropFilter: 'blur(20px)',
@@ -184,22 +184,21 @@ export function VictoryScreen({ winner, onPlayAgain }: VictoryScreenProps) {
         <motion.div
           className="w-16 h-16 mx-auto mb-3 rounded-2xl flex items-center justify-center"
           style={{
-            background: 'linear-gradient(135deg, #ffd93d 0%, #ff9f43 100%)',
-            boxShadow: '0 0 40px rgba(255, 217, 61, 0.6), 0 4px 20px rgba(255, 159, 67, 0.4)',
+            background: 'linear-gradient(135deg, var(--color-aurora-yellow) 0%, var(--color-aurora-orange) 100%)',
+            boxShadow: '0 0 40px rgba(255, 230, 109, 0.6), 0 4px 20px rgba(249, 160, 63, 0.4)',
           }}
           animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
           transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
         >
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" className="text-[#0f0a1f]">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" className="text-[var(--color-text-on-light)]">
             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="currentColor" />
           </svg>
         </motion.div>
 
         <h1
-          className="text-3xl sm:text-4xl font-black mb-2"
+          className="heading-1 mb-2"
           style={{
-            fontFamily: 'var(--font-display)',
-            background: 'linear-gradient(135deg, #ffd93d, #ff9f43, #ff6b9d, #c678dd)',
+            background: 'linear-gradient(135deg, var(--color-aurora-yellow), var(--color-aurora-orange), var(--color-aurora-pink), var(--color-aurora-purple))',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -293,14 +292,15 @@ export function VictoryScreen({ winner, onPlayAgain }: VictoryScreenProps) {
 
         {/* Play Again */}
         <motion.button
-          className="w-full py-3.5 font-bold text-lg rounded-xl relative overflow-hidden mt-2"
+          className="w-full py-3.5 min-h-[52px] font-bold text-lg rounded-xl relative overflow-hidden mt-2 cursor-pointer border-none"
           style={{
             fontFamily: 'var(--font-display)',
-            background: 'linear-gradient(135deg, #c678dd 0%, #ff6b9d 100%)',
-            boxShadow: '0 0 20px rgba(198, 120, 221, 0.5), 0 4px 15px rgba(255, 107, 157, 0.3)',
+            letterSpacing: '0.04em',
+            background: 'linear-gradient(135deg, var(--color-aurora-purple) 0%, var(--color-aurora-pink) 100%)',
+            boxShadow: '0 5px 0 var(--color-aurora-purple-deep), 0 8px 20px rgba(155, 89, 182, 0.4)',
           }}
           onClick={onPlayAgain}
-          whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(198, 120, 221, 0.7), 0 6px 20px rgba(255, 107, 157, 0.5)' }}
+          whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

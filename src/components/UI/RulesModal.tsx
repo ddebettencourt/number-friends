@@ -24,7 +24,7 @@ export function RulesModal({ isOpen, onClose }: RulesModalProps) {
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-black/50 z-40"
+            className="modal-backdrop z-40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -33,46 +33,36 @@ export function RulesModal({ isOpen, onClose }: RulesModalProps) {
 
           {/* Modal */}
           <motion.div
-            className="fixed inset-4 sm:inset-8 md:inset-16 lg:inset-24 rounded-3xl z-50 flex flex-col overflow-hidden"
-            style={{
-              background: 'rgba(15, 10, 31, 0.95)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              boxShadow: '0 0 60px rgba(198, 120, 221, 0.3), 0 8px 32px rgba(0, 0, 0, 0.5)',
-            }}
+            className="modal-card fixed inset-2 sm:inset-8 md:inset-16 lg:inset-24 z-50 flex flex-col overflow-hidden"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
           >
             {/* Header */}
             <div
-              className="flex items-center justify-between px-6 py-4"
+              className="flex items-center justify-between gap-2 px-3 sm:px-6 py-3 sm:py-4"
               style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{
-                    background: 'linear-gradient(135deg, #c678dd 0%, #ff6b9d 100%)',
-                    boxShadow: '0 0 20px rgba(198, 120, 221, 0.5)',
+                    background: 'linear-gradient(135deg, var(--color-aurora-purple) 0%, var(--color-aurora-pink) 100%)',
+                    boxShadow: '0 0 20px rgba(155, 89, 182, 0.5)',
                   }}
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-white">
                     <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </div>
-                <h2 className="font-display text-2xl font-black text-gradient-rainbow">
+                <h2 className="heading-2 text-gradient-rainbow truncate">
                   Number Friends Rules
                 </h2>
               </div>
               <button
                 onClick={onClose}
-                className="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  color: 'rgba(255, 255, 255, 0.6)',
-                }}
+                className="btn-icon flex-shrink-0"
+                aria-label="Close rules"
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 6L6 18M6 6l12 12" />
@@ -92,16 +82,16 @@ export function RulesModal({ isOpen, onClose }: RulesModalProps) {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className="px-4 py-2 rounded-lg font-display font-semibold text-sm whitespace-nowrap transition-all"
+                  className="px-4 py-2 min-h-[44px] rounded-lg font-display font-semibold text-sm whitespace-nowrap flex-shrink-0 transition-all"
                   style={{
                     background: activeTab === tab.id
-                      ? 'rgba(97, 218, 251, 0.2)'
+                      ? 'rgba(49, 133, 252, 0.2)'
                       : 'transparent',
                     color: activeTab === tab.id
-                      ? '#61dafb'
-                      : 'rgba(255, 255, 255, 0.5)',
+                      ? 'var(--color-aurora-blue)'
+                      : 'var(--color-text-muted)',
                     boxShadow: activeTab === tab.id
-                      ? '0 0 15px rgba(97, 218, 251, 0.3)'
+                      ? '0 0 15px rgba(49, 133, 252, 0.3)'
                       : 'none',
                   }}
                 >
@@ -111,7 +101,7 @@ export function RulesModal({ isOpen, onClose }: RulesModalProps) {
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={activeTab}
@@ -144,7 +134,7 @@ function BasicsContent() {
           triggered by landing on special number squares.
         </p>
         <p className="text-[var(--color-text-secondary)] leading-relaxed mt-3">
-          The first player to reach square 100 and successfully complete the <strong className="text-[#ff6b9d]">Final Showdown</strong> challenge wins the game.
+          The first player to reach square 100 and successfully complete the <strong className="text-aurora-pink">Final Showdown</strong> challenge wins the game.
         </p>
       </Section>
 
@@ -173,18 +163,18 @@ function BasicsContent() {
 
       <Section title="Winning the Game">
         <p className="text-[var(--color-text-secondary)] leading-relaxed">
-          When a player lands exactly on square 100, they face the <strong className="text-[#ffd93d]">Final Showdown</strong>—a challenging
+          When a player lands exactly on square 100, they face the <strong className="text-aurora-yellow">Final Showdown</strong>—a challenging
           mathematical test. If they succeed, they win the game immediately. If they fail, they're moved back
           5 squares and must try again on a future turn.
         </p>
         <div
           className="mt-4 p-4 rounded-xl"
           style={{
-            background: 'rgba(255, 217, 61, 0.1)',
-            border: '1px solid rgba(255, 217, 61, 0.3)',
+            background: 'rgba(255, 230, 109, 0.1)',
+            border: '1px solid rgba(255, 230, 109, 0.3)',
           }}
         >
-          <p className="text-[#ffd93d] font-medium">
+          <p className="text-aurora-yellow font-medium">
             Important: You must land exactly on 100. If your roll would take you past 100, you stay where you are.
           </p>
         </div>
@@ -206,48 +196,48 @@ function DiceContent() {
     {
       name: 'D4',
       range: '1, 2, 3, or 4',
-      gradient: 'linear-gradient(135deg, #ff6b9d 0%, #c678dd 100%)',
-      glow: 'rgba(255, 107, 157, 0.4)',
+      gradient: 'linear-gradient(135deg, var(--color-aurora-pink) 0%, var(--color-aurora-purple) 100%)',
+      glow: 'rgba(232, 72, 85, 0.4)',
       desc: 'The safest option with lowest variance. Good for precise positioning when you need to land on specific squares.',
       strategy: 'Best when you need to move exactly 1-4 spaces to reach a target square.'
     },
     {
       name: 'D6',
       range: '1 through 6',
-      gradient: 'linear-gradient(135deg, #61dafb 0%, #56d4c8 100%)',
-      glow: 'rgba(97, 218, 251, 0.4)',
+      gradient: 'linear-gradient(135deg, var(--color-aurora-blue) 0%, var(--color-aurora-cyan) 100%)',
+      glow: 'rgba(49, 133, 252, 0.4)',
       desc: 'The classic six-sided die. Balanced between risk and reward, providing moderate movement.',
       strategy: 'A reliable all-around die with no major downsides.'
     },
     {
       name: 'D8',
       range: '1 through 8',
-      gradient: 'linear-gradient(135deg, #98ec65 0%, #56d4c8 100%)',
-      glow: 'rgba(152, 236, 101, 0.4)',
+      gradient: 'linear-gradient(135deg, var(--color-aurora-green) 0%, var(--color-aurora-cyan) 100%)',
+      glow: 'rgba(95, 173, 86, 0.4)',
       desc: 'Eight-sided die offering greater range. Higher potential movement but more unpredictable outcomes.',
       strategy: 'Good for mid-game when you want to make progress without extreme variance.'
     },
     {
       name: 'D10',
       range: '1 through 10',
-      gradient: 'linear-gradient(135deg, #ffd93d 0%, #ff9f43 100%)',
-      glow: 'rgba(255, 217, 61, 0.4)',
+      gradient: 'linear-gradient(135deg, var(--color-aurora-yellow) 0%, var(--color-aurora-orange) 100%)',
+      glow: 'rgba(255, 230, 109, 0.4)',
       desc: 'Ten-sided die for those seeking high movement potential. Can dramatically change your position.',
       strategy: 'High risk, high reward. Great when behind, risky when you need precision.'
     },
     {
       name: 'Prime Die',
       range: '2, 3, 5, 7, 11, or 13',
-      gradient: 'linear-gradient(135deg, #c678dd 0%, #61dafb 100%)',
-      glow: 'rgba(198, 120, 221, 0.4)',
+      gradient: 'linear-gradient(135deg, var(--color-aurora-purple) 0%, var(--color-aurora-blue) 100%)',
+      glow: 'rgba(155, 89, 182, 0.4)',
       desc: 'A special die showing only prime numbers. Minimum roll is 2, with potential for large leaps (11 or 13).',
       strategy: 'Guaranteed to move at least 2 spaces. Good odds for decent movement.'
     },
     {
       name: 'Gaussian Plinko',
       range: '1 through 12',
-      gradient: 'linear-gradient(135deg, #ff6b9d 0%, #ffd93d 100%)',
-      glow: 'rgba(255, 107, 157, 0.4)',
+      gradient: 'linear-gradient(135deg, var(--color-aurora-pink) 0%, var(--color-aurora-yellow) 100%)',
+      glow: 'rgba(232, 72, 85, 0.4)',
       desc: 'A unique Plinko-style die! Drop a ball through pegs and watch it bounce to determine your roll. Results follow a bell curve distribution, usually landing near the center.',
       strategy: 'Most likely to roll middle values (5-8), but extreme results are possible.'
     },
@@ -272,11 +262,7 @@ function DiceContent() {
           {dice.map((die) => (
             <div
               key={die.name}
-              className="p-4 rounded-xl"
-              style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-              }}
+              className="glass-inset p-4"
             >
               <div className="flex items-start gap-4">
                 <div
@@ -310,63 +296,63 @@ function SquaresContent() {
     {
       type: 'Prime Numbers',
       examples: '2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97',
-      color: '#61dafb',
+      color: '#3185FC',
       game: 'Prime-Off',
       description: 'Numbers divisible only by 1 and themselves. The building blocks of all integers.'
     },
     {
       type: 'Twin Primes',
       examples: '3, 5, 7, 11, 13, 17, 19, 29, 31, 41, 43, 59, 61, 71, 73',
-      color: '#56d4c8',
+      color: '#4ECDC4',
       game: 'Prime-Off or Prime Blackjack (50/50)',
       description: 'Primes that are part of a pair differing by 2 (like 11 & 13). Extra special!'
     },
     {
       type: 'Perfect Squares',
       examples: '4, 9, 16, 25, 36, 49, 64, 81, 100',
-      color: '#c678dd',
+      color: '#9B59B6',
       game: 'Root Race',
       description: 'Numbers that are the square of an integer (n × n).'
     },
     {
       type: 'Perfect Cubes',
       examples: '8, 27, 64',
-      color: '#ff9f43',
+      color: '#F9A03F',
       game: 'Cube Root Challenge',
       description: 'Numbers that are the cube of an integer (n × n × n).'
     },
     {
       type: 'Multiples of 10',
       examples: '10, 20, 30, 40, 50, 60, 70, 80, 90, 100',
-      color: '#ffd93d',
+      color: '#FFE66D',
       game: 'Double Digits',
       description: 'Every tenth square. Landing here means a chance to teleport!'
     },
     {
       type: 'Fibonacci Numbers',
       examples: '1, 2, 3, 5, 8, 13, 21, 34, 55, 89',
-      color: '#98ec65',
+      color: '#5FAD56',
       game: 'Sequence Savant',
       description: 'Each number is the sum of the two before it. Found throughout nature!'
     },
     {
       type: 'Perfect Numbers',
       examples: '6, 28',
-      color: '#ff6b9d',
+      color: '#E84855',
       game: 'Factor Frenzy',
       description: 'Extremely rare! Numbers equal to the sum of their proper divisors.'
     },
     {
       type: 'Abundant Numbers',
       examples: '12, 18, 20, 24, 30, 36, 40, 42, 48, 54, 56, 60...',
-      color: '#56d4c8',
+      color: '#4ECDC4',
       game: 'Number Builder',
       description: 'Numbers where the sum of proper divisors exceeds the number itself.'
     },
     {
       type: 'Square 100',
       examples: '100',
-      color: '#ffd93d',
+      color: '#FFE66D',
       game: 'Final Showdown',
       description: 'The finish line! Complete the ultimate challenge to win.'
     },
@@ -489,7 +475,7 @@ function MinigamesContent() {
     <div className="space-y-6 max-w-2xl">
       <Section title="Competitive Minigames">
         <p className="text-[var(--color-text-secondary)] leading-relaxed mb-4">
-          When a special square triggers a minigame, <strong className="text-[#ff6b9d]">all players participate simultaneously</strong>.
+          When a special square triggers a minigame, <strong className="text-aurora-pink">all players participate simultaneously</strong>.
           This keeps everyone engaged regardless of whose turn it is. The player who triggered the minigame
           benefits from winning, but other players can spoil their advantage by outperforming them.
         </p>
@@ -504,18 +490,14 @@ function MinigamesContent() {
           {minigames.map((game) => (
             <div
               key={game.name}
-              className="p-5 rounded-xl"
-              style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-              }}
+              className="glass-inset p-5"
             >
               <div className="flex items-start gap-3 mb-3">
                 <div
                   className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
                   style={{
-                    background: 'linear-gradient(135deg, #c678dd 0%, #ff6b9d 100%)',
-                    boxShadow: '0 0 15px rgba(198, 120, 221, 0.4)',
+                    background: 'linear-gradient(135deg, var(--color-aurora-purple) 0%, var(--color-aurora-pink) 100%)',
+                    boxShadow: '0 0 15px rgba(155, 89, 182, 0.4)',
                   }}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" className="text-white">
@@ -531,20 +513,20 @@ function MinigamesContent() {
               <div
                 className="p-3 rounded-lg mb-3"
                 style={{
-                  background: 'rgba(97, 218, 251, 0.1)',
-                  border: '1px solid rgba(97, 218, 251, 0.3)',
+                  background: 'rgba(49, 133, 252, 0.1)',
+                  border: '1px solid rgba(49, 133, 252, 0.3)',
                 }}
               >
-                <p className="text-sm" style={{ color: '#61dafb' }}><strong>How to Play:</strong> {game.howTo}</p>
+                <p className="text-sm" style={{ color: 'var(--color-aurora-blue)' }}><strong>How to Play:</strong> {game.howTo}</p>
               </div>
               <div
                 className="p-3 rounded-lg"
                 style={{
-                  background: 'rgba(255, 217, 61, 0.1)',
-                  border: '1px solid rgba(255, 217, 61, 0.3)',
+                  background: 'rgba(255, 230, 109, 0.1)',
+                  border: '1px solid rgba(255, 230, 109, 0.3)',
                 }}
               >
-                <p className="text-sm" style={{ color: '#ffd93d' }}><strong>Reward:</strong> {game.reward}</p>
+                <p className="text-sm" style={{ color: 'var(--color-aurora-yellow)' }}><strong>Reward:</strong> {game.reward}</p>
               </div>
             </div>
           ))}
@@ -558,10 +540,10 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <div>
       <h3
-        className="font-display text-xl font-bold mb-4 pb-2"
+        className="font-title text-xl mb-4 pb-2"
         style={{
-          color: '#61dafb',
-          borderBottom: '1px solid rgba(97, 218, 251, 0.3)',
+          color: 'var(--color-aurora-blue)',
+          borderBottom: '1px solid rgba(49, 133, 252, 0.3)',
         }}
       >
         {title}
@@ -577,8 +559,8 @@ function StepItem({ number, title, children }: { number: number; title: string; 
       <div
         className="w-8 h-8 rounded-full font-display font-bold flex items-center justify-center flex-shrink-0"
         style={{
-          background: 'linear-gradient(135deg, #c678dd 0%, #ff6b9d 100%)',
-          boxShadow: '0 0 15px rgba(198, 120, 221, 0.4)',
+          background: 'linear-gradient(135deg, var(--color-aurora-purple) 0%, var(--color-aurora-pink) 100%)',
+          boxShadow: '0 0 15px rgba(155, 89, 182, 0.4)',
           color: 'white',
         }}
       >

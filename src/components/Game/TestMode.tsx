@@ -76,7 +76,7 @@ export function TestMode({ onExit }: TestModeProps) {
   // Render active minigame
   if (activeMinigame) {
     return (
-      <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="modal-backdrop flex items-center justify-center z-50 p-4">
         <motion.div
           className="w-full max-w-lg"
           initial={{ scale: 0.8, y: 50 }}
@@ -84,14 +84,12 @@ export function TestMode({ onExit }: TestModeProps) {
           exit={{ scale: 0.8, y: 50 }}
         >
           {/* Exit button */}
-          <motion.button
-            className="absolute top-4 right-4 z-50 px-4 py-2 bg-red-500 text-white rounded-lg font-bold"
+          <button
+            className="btn btn-pink btn-sm absolute top-4 right-4 z-50"
             onClick={() => setActiveMinigame(null)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
             Exit Minigame
-          </motion.button>
+          </button>
 
           {/* Render the minigame */}
           {activeMinigame === 'prime_off' && <PrimeOff />}
@@ -114,38 +112,68 @@ export function TestMode({ onExit }: TestModeProps) {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-black text-[var(--color-text-primary)]">Test Mode</h1>
+            <h1 className="heading-1 text-[var(--color-text-primary)]">Test Mode</h1>
             <p className="text-[var(--color-text-secondary)]">Test minigames, dice, and spinner</p>
           </div>
-          <motion.button
-            className="px-6 py-3 wood-raised text-white font-bold rounded-xl"
+          <button
+            className="btn btn-purple btn-sm"
             onClick={onExit}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
           >
             Exit Test Mode
-          </motion.button>
+          </button>
         </div>
 
         {/* Category tabs */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-6 overflow-x-auto">
           {[
-            { id: 'minigames' as TestCategory, label: 'Minigames', icon: '🎮' },
-            { id: 'dice' as TestCategory, label: 'Dice Roller', icon: '🎲' },
-            { id: 'spinner' as TestCategory, label: 'Spinner Wheel', icon: '🎯' },
+            {
+              id: 'minigames' as TestCategory,
+              label: 'Minigames',
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M17.32 5H6.68a4 4 0 0 0-3.98 3.59L2 14a3 3 0 0 0 5.12 2.3L9 14.5h6l1.88 1.8A3 3 0 0 0 22 14l-.7-5.41A4 4 0 0 0 17.32 5z" />
+                  <path d="M6 11h4M8 9v4" />
+                  <circle cx="15.5" cy="10.5" r="0.5" fill="currentColor" />
+                  <circle cx="18" cy="12.5" r="0.5" fill="currentColor" />
+                </svg>
+              ),
+            },
+            {
+              id: 'dice' as TestCategory,
+              label: 'Dice Roller',
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="4" />
+                  <circle cx="8.5" cy="8.5" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+                  <circle cx="15.5" cy="15.5" r="1" fill="currentColor" stroke="none" />
+                </svg>
+              ),
+            },
+            {
+              id: 'spinner' as TestCategory,
+              label: 'Spinner Wheel',
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="9" />
+                  <circle cx="12" cy="12" r="5" />
+                  <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+                </svg>
+              ),
+            },
           ].map((tab) => (
             <motion.button
               key={tab.id}
-              className={`flex-1 py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 ${
+              className={`flex-1 min-h-[44px] py-3 px-4 rounded-xl font-bold flex items-center justify-center gap-2 whitespace-nowrap ${
                 category === tab.id
                   ? 'piece-sapphire text-white'
-                  : 'wood-inset text-[var(--color-text-secondary)]'
+                  : 'glass-inset text-[var(--color-text-secondary)]'
               }`}
               onClick={() => setCategory(tab.id)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <span>{tab.icon}</span>
+              <span className="flex items-center justify-center">{tab.icon}</span>
               {tab.label}
             </motion.button>
           ))}
@@ -164,7 +192,7 @@ export function TestMode({ onExit }: TestModeProps) {
               {MINIGAME_LIST.map((minigame) => (
                 <motion.button
                   key={minigame.type}
-                  className="game-card p-4 rounded-xl text-left hover:shadow-lg transition-shadow"
+                  className="glass-card p-4 text-left hover:shadow-lg transition-shadow"
                   onClick={() => handleMinigameSelect(minigame.type)}
                   whileHover={{ scale: 1.02, y: -2 }}
                   whileTap={{ scale: 0.98 }}
@@ -186,7 +214,7 @@ export function TestMode({ onExit }: TestModeProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="game-card p-6 rounded-xl"
+              className="glass-card p-6"
             >
               {!selectedDice ? (
                 <div>
@@ -228,14 +256,12 @@ export function TestMode({ onExit }: TestModeProps) {
                       </p>
                     </div>
                   )}
-                  <motion.button
-                    className="mt-4 px-6 py-2 wood-inset rounded-lg font-bold text-[var(--color-text-secondary)]"
+                  <button
+                    className="btn btn-ghost btn-sm mt-4"
                     onClick={resetDice}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                   >
                     Back to Dice Selection
-                  </motion.button>
+                  </button>
                 </div>
               ) : (
                 <div className="flex flex-col items-center">
@@ -244,23 +270,19 @@ export function TestMode({ onExit }: TestModeProps) {
                     onRollComplete={(result: number) => setLastRoll(result)}
                   />
                   {lastRoll !== null && (
-                    <motion.button
-                      className="mt-4 px-6 py-2 piece-emerald text-white rounded-lg font-bold"
+                    <button
+                      className="btn btn-green btn-sm mt-4"
                       onClick={handleRollAgain}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
                     >
                       Roll Again
-                    </motion.button>
+                    </button>
                   )}
-                  <motion.button
-                    className="mt-4 px-6 py-2 wood-inset rounded-lg font-bold text-[var(--color-text-secondary)]"
+                  <button
+                    className="btn btn-ghost btn-sm mt-4"
                     onClick={resetDice}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                   >
                     Back to Dice Selection
-                  </motion.button>
+                  </button>
                 </div>
               )}
             </motion.div>
@@ -272,7 +294,7 @@ export function TestMode({ onExit }: TestModeProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="game-card p-6 rounded-xl flex flex-col items-center"
+              className="glass-card p-6 flex flex-col items-center"
             >
               <SpinnerWheel onSpinComplete={handleSpinComplete} />
 

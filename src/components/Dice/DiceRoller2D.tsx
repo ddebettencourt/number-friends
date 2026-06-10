@@ -76,8 +76,8 @@ export function DiceRoller2D({ diceType, onRollComplete, disabled }: DiceRoller2
           key={rollCount}
           className="relative flex items-center justify-center"
           style={{
-            width: 140,
-            height: 140,
+            width: 'clamp(110px, 30vw, 140px)',
+            height: 'clamp(110px, 30vw, 140px)',
             borderRadius: getDiceShape(diceType) === 'square' ? 20 : getDiceShape(diceType) === 'diamond' ? 20 : 16,
             background: `linear-gradient(135deg, ${config.color} 0%, ${adjustColor(config.color, -40)} 100%)`,
             boxShadow: `
@@ -108,9 +108,8 @@ export function DiceRoller2D({ diceType, onRollComplete, disabled }: DiceRoller2
             <AnimatePresence mode="popLayout">
               <motion.span
                 key={`${currentDisplay}-${rollCount}`}
-                className="font-bold text-white"
+                className="font-display text-white"
                 style={{
-                  fontFamily: "'Bangers', sans-serif",
                   fontSize: getFontSize(currentDisplay),
                   textShadow: '0 2px 4px rgba(0,0,0,0.3)',
                   letterSpacing: '0.02em',
@@ -162,11 +161,10 @@ export function DiceRoller2D({ diceType, onRollComplete, disabled }: DiceRoller2
 
       {/* Dice type label */}
       <div
-        className="px-4 py-1.5 rounded-lg text-white font-bold"
+        className="px-4 py-1.5 rounded-lg text-white font-display text-sm"
         style={{
-          fontFamily: "'Bangers', sans-serif",
           background: config.color,
-          boxShadow: `0 3px 0 ${adjustColor(config.color, -40)}`,
+          boxShadow: `0 3px 0 ${adjustColor(config.color, -40)}, 0 0 15px ${config.color}40`,
           letterSpacing: '0.05em',
         }}
       >
@@ -177,8 +175,7 @@ export function DiceRoller2D({ diceType, onRollComplete, disabled }: DiceRoller2
       <div className="text-center h-8">
         {!isRolling && !finalResult && (
           <motion.p
-            className="text-[var(--color-text-secondary)]"
-            style={{ fontFamily: "'Quicksand', sans-serif" }}
+            className="text-[var(--color-text-secondary)] font-body font-medium"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
@@ -187,8 +184,7 @@ export function DiceRoller2D({ diceType, onRollComplete, disabled }: DiceRoller2
         )}
         {isRolling && (
           <motion.p
-            className="text-[var(--color-text-muted)]"
-            style={{ fontFamily: "'Quicksand', sans-serif" }}
+            className="text-[var(--color-text-muted)] font-body font-medium"
             animate={{ opacity: [0.5, 1, 0.5] }}
             transition={{ duration: 0.5, repeat: Infinity }}
           >
@@ -197,11 +193,10 @@ export function DiceRoller2D({ diceType, onRollComplete, disabled }: DiceRoller2
         )}
         {!isRolling && finalResult && (
           <motion.p
-            className="font-bold"
+            className="font-display text-2xl tracking-wide"
             style={{
-              fontFamily: "'Bangers', sans-serif",
               color: config.color,
-              fontSize: '1.25rem',
+              textShadow: `0 0 18px ${config.color}90, 0 0 36px ${config.color}50`,
             }}
             initial={{ opacity: 0, scale: 0.5 }}
             animate={{ opacity: 1, scale: 1 }}
