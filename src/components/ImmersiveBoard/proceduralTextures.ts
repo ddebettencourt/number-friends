@@ -59,6 +59,44 @@ export function makeNoiseTexture(base: string, specks: string[], opts: NoiseText
   return tex;
 }
 
+// Soft fluffy cloud sheet with alpha — used for the Sky Islands cloud sea.
+// Big overlapping radial-gradient puffs on a transparent canvas.
+export function makeCloudTexture(opts: NoiseTextureOpts = {}): THREE.CanvasTexture {
+  const size = opts.size ?? 512;
+  const count = opts.count ?? 260;
+  const rnd = mulberry32(opts.seed ?? 555);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = size;
+  const ctx = canvas.getContext('2d')!;
+  ctx.clearRect(0, 0, size, size);
+
+  for (let i = 0; i < count; i++) {
+    const x = rnd() * size;
+    const y = rnd() * size;
+    const r = size * (0.03 + rnd() * 0.07);
+    const a = 0.10 + rnd() * 0.22;
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `rgba(255,255,255,${a})`);
+    g.addColorStop(0.7, `rgba(255,255,255,${a * 0.5})`);
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    // draw wrapped so the texture tiles seamlessly
+    for (const ox of [-size, 0, size]) {
+      for (const oy of [-size, 0, size]) {
+        ctx.beginPath();
+        ctx.arc(x + ox, y + oy, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 // A grayscale version of the same speckle, usable as a bump map for relief.
 export function makeBumpTexture(opts: NoiseTextureOpts = {}): THREE.CanvasTexture {
   const size = opts.size ?? 256;

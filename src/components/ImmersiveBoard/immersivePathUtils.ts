@@ -90,12 +90,12 @@ export function generateImmersivePath(numSquares: number): Vector3Tuple[] {
 // Square color based on math properties - reuses zone config
 export function getImmersiveSquareColor(squareNumber: number): string {
   if (squareNumber === 1) return '#5FAD56';
-  if (squareNumber === 100) return '#FFD93D';
+  if (squareNumber === 100) return '#FFE66D';
 
-  if (isPrime(squareNumber)) return '#61dafb';
-  if (isPerfectSquare(squareNumber)) return '#c678dd';
-  if (isFibonacci(squareNumber)) return '#98ec65';
-  if (squareNumber % 10 === 0) return '#ff9f43';
+  if (isPrime(squareNumber)) return '#5BA3FC';
+  if (isPerfectSquare(squareNumber)) return '#B97CD4';
+  if (isFibonacci(squareNumber)) return '#7BC970';
+  if (squareNumber % 10 === 0) return '#F9A03F';
 
   const zone = getZoneForSquare(squareNumber);
   return zone.tileColor;
@@ -137,10 +137,10 @@ export interface SquareKind {
 
 export function getSquareKind(squareNumber: number): SquareKind | null {
   if (squareNumber === 1 || squareNumber === 100) return null;
-  if (isPerfectSquare(squareNumber)) return { symbol: '√', color: '#c678dd', label: 'Perfect square' };
-  if (isPerfectCube(squareNumber)) return { symbol: '∛', color: '#f97316', label: 'Perfect cube' };
-  if (isPrime(squareNumber)) return { symbol: 'P', color: '#61dafb', label: 'Prime' };
-  if (isFibonacci(squareNumber)) return { symbol: 'φ', color: '#98ec65', label: 'Fibonacci' };
-  if (squareNumber % 10 === 0) return { symbol: '⊗', color: '#ff9f43', label: 'Multiple of 10' };
+  if (isPerfectSquare(squareNumber)) return { symbol: '√', color: '#B97CD4', label: 'Perfect square' };
+  if (isPerfectCube(squareNumber)) return { symbol: '∛', color: '#F9A03F', label: 'Perfect cube' };
+  if (isPrime(squareNumber)) return { symbol: 'P', color: '#5BA3FC', label: 'Prime' };
+  if (isFibonacci(squareNumber)) return { symbol: 'φ', color: '#7BC970', label: 'Fibonacci' };
+  if (squareNumber % 10 === 0) return { symbol: '⊗', color: '#F9A03F', label: 'Multiple of 10' };
   return null;
 }

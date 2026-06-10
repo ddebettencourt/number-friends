@@ -1,215 +1,446 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import type { Vector3Tuple } from 'three';
 import { ZONES } from '../Board3D/zoneConfig';
-import { makeNoiseTexture, makeBumpTexture } from './proceduralTextures';
+import { makeBumpTexture, makeCloudTexture } from './proceduralTextures';
+import { fbm2, ridged2 } from './worldNoise';
+import { LOW_PERF } from '../../utils/perf';
 
-// Lazily-built, cached procedural ground textures (one set per zone).
-interface ZoneTex { map: THREE.CanvasTexture; bump: THREE.CanvasTexture }
-let _texCache: Record<string, ZoneTex> | null = null;
-function groundTextures(): Record<string, ZoneTex> {
-  if (_texCache) return _texCache;
-  const mk = (base: string, specks: string[], seed: number, rep: number, opts = {}): ZoneTex => {
-    const map = makeNoiseTexture(base, specks, { seed, ...opts });
-    const bump = makeBumpTexture({ seed: seed + 7 });
-    map.repeat.set(rep, rep);
-    bump.repeat.set(rep, rep);
-    return { map, bump };
-  };
-  _texCache = {
-    meadow: mk('#4a7c59', ['#3d6b4a', '#5c8f66', '#6fa055', '#34603f', '#7aa84a'], 11, 9, { count: 2000 }),
-    caves: mk('#2a2a3e', ['#1f1f30', '#3a3a55', '#4a3a6e', '#222238', '#5a4a7e'], 22, 7),
-    volcanic: mk('#1a1a1a', ['#0e0e0e', '#2a2a2a', '#3a1a10', '#ff5510', '#5a2510'], 33, 8, { maxAlpha: 0.12 }),
-    summit: mk('#c8a84e', ['#b8983e', '#d8b85e', '#e8c86e', '#a88838', '#f0d878'], 44, 8),
-  };
-  return _texCache;
-}
+// ============================================================
+//  Sculpted terrain — displaced, vertex-colored heightfields that
+//  follow the path's elevation and flatten beneath it. Replaces the
+//  old flat ground planes.
+// ============================================================
 
 interface ImmersiveGroundProps {
   positions: Vector3Tuple[];
   activeZone: number;
 }
 
-function getZoneBounds(positions: Vector3Tuple[], startSquare: number, endSquare: number) {
-  const startIdx = startSquare - 1;
-  const endIdx = Math.min(endSquare, positions.length);
-  const zonePos = positions.slice(startIdx, endIdx);
+interface ZoneData {
+  cx: number;
+  cz: number;
+  minY: number;
+  rangeX: number;
+  rangeZ: number;
+  /** Path points for this zone padded with a couple of neighbors for seamless joins */
+  path: Vector3Tuple[];
+}
 
-  if (zonePos.length === 0) return null;
+const smoothstep = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
+const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 
-  let minX = Infinity, maxX = -Infinity;
-  let minZ = Infinity, maxZ = -Infinity;
-  let minY = Infinity;
+interface TerrainOpts {
+  data: ZoneData;
+  padX?: number;
+  padZ?: number;
+  segs?: number;
+  /** Noise height (world x,z) relative to base elevation */
+  height: (x: number, z: number) => number;
+  /** Vertex color from world x,z and final world y */
+  color: (x: number, z: number, y: number) => [number, number, number];
+  /** Distance from path at which terrain is fully flattened / fully free */
+  flatR?: number;
+  blendR?: number;
+  /** How far below the path surface the flattened ground sits */
+  pathDrop?: number;
+  /** How far the outer edges sink (hides seams between zone terrains) */
+  edgeSink?: number;
+}
 
-  for (const [x, y, z] of zonePos) {
-    minX = Math.min(minX, x);
-    maxX = Math.max(maxX, x);
-    minZ = Math.min(minZ, z);
-    maxZ = Math.max(maxZ, z);
-    minY = Math.min(minY, y);
+function buildTerrain(opts: TerrainOpts): THREE.BufferGeometry {
+  const {
+    data,
+    padX = 32,
+    padZ = 32,
+    segs = LOW_PERF ? 64 : 110,
+    height,
+    color,
+    flatR = 2.2,
+    blendR = 7,
+    pathDrop = 0.55,
+    edgeSink = 13,
+  } = opts;
+
+  const width = data.rangeX + padX;
+  const depth = data.rangeZ + padZ;
+  const baseY = data.minY - 0.4;
+
+  const geo = new THREE.PlaneGeometry(width, depth, segs, Math.round(segs * (depth / width)));
+  geo.rotateX(-Math.PI / 2);
+
+  const pos = geo.attributes.position;
+  const colors = new Float32Array(pos.count * 3);
+
+  for (let i = 0; i < pos.count; i++) {
+    const lx = pos.getX(i);
+    const lz = pos.getZ(i);
+    const x = lx + data.cx;
+    const z = lz + data.cz;
+
+    let y = baseY + height(x, z);
+
+    // Sink the outer edges so adjacent zone terrains never poke through
+    // each other — fog + the drop swallow the seam.
+    const ex = Math.abs(lx) / (width / 2);
+    const ez = Math.abs(lz) / (depth / 2);
+    y -= smoothstep(0.58, 1.0, Math.max(ex, ez)) * edgeSink;
+
+    // Flatten toward the nearest path point's elevation
+    let bestD2 = Infinity;
+    let bestY = baseY;
+    for (const [px, py, pz] of data.path) {
+      const dx = px - x;
+      const dz = pz - z;
+      const d2 = dx * dx + dz * dz;
+      if (d2 < bestD2) {
+        bestD2 = d2;
+        bestY = py;
+      }
+    }
+    const d = Math.sqrt(bestD2);
+    const free = smoothstep(flatR, blendR, d); // 0 on path → 1 far away
+    y = lerp(bestY - pathDrop, y, free);
+
+    pos.setY(i, y);
+
+    const [r, g, b] = color(x, z, y);
+    colors[i * 3] = r;
+    colors[i * 3 + 1] = g;
+    colors[i * 3 + 2] = b;
   }
 
-  return { minX, maxX, minZ, maxZ, minY, positions: zonePos };
+  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geo.computeVertexNormals();
+  return geo;
 }
 
-function MeadowGround({ bounds }: { bounds: ReturnType<typeof getZoneBounds> }) {
-  if (!bounds) return null;
-  const width = (bounds.maxX - bounds.minX) + 40;
-  const depth = (bounds.maxZ - bounds.minZ) + 30;
-  const cx = (bounds.minX + bounds.maxX) / 2;
-  const cz = (bounds.minZ + bounds.maxZ) / 2;
+// Shared bump map for micro surface detail
+let _bump: THREE.CanvasTexture | null = null;
+function bumpTex(): THREE.CanvasTexture {
+  if (!_bump) {
+    _bump = makeBumpTexture({ seed: 17 });
+    _bump.repeat.set(10, 10);
+  }
+  return _bump;
+}
 
-  const tex = groundTextures().meadow;
+const c = new THREE.Color();
+function rgb(hex: string): [number, number, number] {
+  c.set(hex);
+  return [c.r, c.g, c.b];
+}
+function mix3(a: [number, number, number], b: [number, number, number], t: number): [number, number, number] {
+  return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
+}
+
+// ---------------- MEADOW ----------------
+
+const MEADOW = {
+  dark: rgb('#3e7a45'),
+  mid: rgb('#549a52'),
+  light: rgb('#6fb45e'),
+  sunny: rgb('#8cc46a'),
+  dirt: rgb('#7d6a48'),
+};
+
+function MeadowTerrain({ data }: { data: ZoneData }) {
+  const geometry = useMemo(
+    () =>
+      buildTerrain({
+        data,
+        height: (x, z) =>
+          fbm2(x * 0.055, z * 0.055, 4, 11) * 2.4 +
+          (fbm2(x * 0.013, z * 0.013, 3, 12) - 0.5) * 5.5,
+        color: (x, z, y) => {
+          const n = fbm2(x * 0.16, z * 0.16, 3, 13);
+          const patch = fbm2(x * 0.05, z * 0.05, 2, 14);
+          let col = mix3(MEADOW.dark, MEADOW.mid, smoothstep(0.3, 0.6, n));
+          col = mix3(col, MEADOW.light, smoothstep(0.55, 0.85, n));
+          // sun-bleached patches
+          col = mix3(col, MEADOW.sunny, smoothstep(0.62, 0.8, patch) * 0.6);
+          // dirt shows on higher knolls
+          col = mix3(col, MEADOW.dirt, smoothstep(2.1, 3.2, y) * 0.5);
+          return col;
+        },
+      }),
+    [data]
+  );
   return (
-    <mesh position={[cx, bounds.minY - 0.4, cz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-      <planeGeometry args={[width, depth]} />
-      <meshStandardMaterial map={tex.map} bumpMap={tex.bump} bumpScale={0.4} color="#4a7c59" roughness={0.95} metalness={0.05} />
+    <mesh geometry={geometry} receiveShadow>
+      <meshStandardMaterial vertexColors bumpMap={bumpTex()} bumpScale={0.35} roughness={0.95} metalness={0.02} />
     </mesh>
   );
 }
 
-function CavesGround({ bounds }: { bounds: ReturnType<typeof getZoneBounds> }) {
-  if (!bounds) return null;
-  const width = (bounds.maxX - bounds.minX) + 40;
-  const depth = (bounds.maxZ - bounds.minZ) + 30;
-  const cx = (bounds.minX + bounds.maxX) / 2;
-  const cz = (bounds.minZ + bounds.maxZ) / 2;
+// ---------------- CRYSTAL CAVES ----------------
+
+const CAVES = {
+  floor: rgb('#221f38'),
+  raise: rgb('#363055'),
+  vein: rgb('#5b4a8e'),
+  glowVein: rgb('#4ECDC4'),
+};
+
+function CavesTerrain({ data }: { data: ZoneData }) {
+  const floorGeo = useMemo(
+    () =>
+      buildTerrain({
+        data,
+        padX: 40,
+        padZ: 38,
+        height: (x, z) => ridged2(x * 0.07, z * 0.07, 4, 21) * 2.2 + fbm2(x * 0.02, z * 0.02, 3, 22) * 2,
+        color: (x, z) => {
+          const n = fbm2(x * 0.14, z * 0.14, 3, 23);
+          const vein = fbm2(x * 0.3, z * 0.3, 2, 24);
+          let col = mix3(CAVES.floor, CAVES.raise, smoothstep(0.35, 0.7, n));
+          col = mix3(col, CAVES.vein, smoothstep(0.68, 0.78, vein) * 0.8);
+          // faint cyan mineral veins
+          col = mix3(col, CAVES.glowVein, smoothstep(0.8, 0.88, vein) * 0.35);
+          return col;
+        },
+        edgeSink: 5,
+      }),
+    [data]
+  );
+
+  // Hanging rocky ceiling — inverted heightfield with stalactite ridges,
+  // vaulted high enough that the camera never meets it.
+  const ceilGeo = useMemo(() => {
+    const width = data.rangeX + 44;
+    const depth = data.rangeZ + 40;
+    const segs = LOW_PERF ? 48 : 84;
+    const geo = new THREE.PlaneGeometry(width, depth, segs, Math.round(segs * (depth / width)));
+    geo.rotateX(Math.PI / 2); // faces downward
+    const pos = geo.attributes.position;
+    const colors = new Float32Array(pos.count * 3);
+    const base = data.minY + 19;
+    for (let i = 0; i < pos.count; i++) {
+      const x = pos.getX(i) + data.cx;
+      const z = pos.getZ(i) + data.cz;
+      const spike = ridged2(x * 0.09, z * 0.09, 4, 31);
+      const y = base - spike * 3.5 - fbm2(x * 0.03, z * 0.03, 2, 32) * 1.5;
+      pos.setY(i, y);
+      const n = fbm2(x * 0.2, z * 0.2, 2, 33);
+      const col = mix3(rgb('#191630'), rgb('#2c2548'), n);
+      colors[i * 3] = col[0];
+      colors[i * 3 + 1] = col[1];
+      colors[i * 3 + 2] = col[2];
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geo.computeVertexNormals();
+    return geo;
+  }, [data]);
 
   return (
     <group>
-      {/* Floor */}
-      <mesh position={[cx, bounds.minY - 0.4, cz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[width, depth]} />
-        <meshStandardMaterial map={groundTextures().caves.map} bumpMap={groundTextures().caves.bump} bumpScale={0.5} color="#2a2a3e" roughness={0.85} metalness={0.15} />
+      <mesh geometry={floorGeo} receiveShadow>
+        <meshStandardMaterial
+          vertexColors
+          bumpMap={bumpTex()}
+          bumpScale={0.5}
+          roughness={0.8}
+          metalness={0.18}
+          emissive="#221d3e"
+          emissiveIntensity={0.3}
+        />
       </mesh>
-      {/* Cave ceiling */}
-      <mesh position={[cx, bounds.minY + 8, cz]} rotation={[Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[width, depth]} />
-        <meshStandardMaterial color="#1a1a2e" roughness={0.95} metalness={0.05} />
+      <mesh geometry={ceilGeo}>
+        <meshStandardMaterial vertexColors roughness={0.9} metalness={0.1} />
       </mesh>
     </group>
   );
 }
 
-function VolcanicGround({ bounds }: { bounds: ReturnType<typeof getZoneBounds> }) {
-  if (!bounds) return null;
-  const width = (bounds.maxX - bounds.minX) + 40;
-  const depth = (bounds.maxZ - bounds.minZ) + 30;
-  const cx = (bounds.minX + bounds.maxX) / 2;
-  const cz = (bounds.minZ + bounds.maxZ) / 2;
+// ---------------- VOLCANIC RIDGE ----------------
 
-  // Seeded random for lava patches
-  const seeded = (seed: number) => {
-    const x = Math.sin(seed * 127.1) * 43758.5453;
-    return x - Math.floor(x);
-  };
+const VOLCANO = {
+  basalt: rgb('#171411'),
+  rock: rgb('#2b2521'),
+  ash: rgb('#3d3833'),
+  ember: rgb('#5a230d'),
+};
 
-  return (
-    <group>
-      <mesh position={[cx, bounds.minY - 0.4, cz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[width, depth]} />
-        <meshStandardMaterial map={groundTextures().volcanic.map} bumpMap={groundTextures().volcanic.bump} bumpScale={0.6} color="#1a1a1a" roughness={0.95} metalness={0.1} />
-      </mesh>
-      {/* Lava patches */}
-      {Array.from({ length: 12 }).map((_, i) => {
-        const lx = cx + (seeded(i * 7 + 1) - 0.5) * width * 0.7;
-        const lz = cz + (seeded(i * 7 + 2) - 0.5) * depth * 0.7;
-        const lr = 1 + seeded(i * 7 + 3) * 2;
-        return (
-          <mesh key={i} position={[lx, bounds.minY - 0.35, lz]} rotation={[-Math.PI / 2, 0, 0]}>
-            <circleGeometry args={[lr, 16]} />
-            <meshStandardMaterial
-              color="#ff4500"
-              emissive="#ff6a00"
-              emissiveIntensity={0.5}
-              roughness={0.3}
-            />
-          </mesh>
-        );
-      })}
-    </group>
+function VolcanoTerrain({ data }: { data: ZoneData }) {
+  const geometry = useMemo(
+    () =>
+      buildTerrain({
+        data,
+        padX: 36,
+        padZ: 34,
+        height: (x, z) =>
+          ridged2(x * 0.045, z * 0.045, 4, 41) * 4.2 +
+          (fbm2(x * 0.015, z * 0.015, 3, 42) - 0.4) * 4,
+        color: (x, z, y) => {
+          const n = fbm2(x * 0.13, z * 0.13, 3, 43);
+          const crack = ridged2(x * 0.2, z * 0.2, 2, 44);
+          let col = mix3(VOLCANO.basalt, VOLCANO.rock, smoothstep(0.3, 0.7, n));
+          // ash dusting on ridge tops
+          col = mix3(col, VOLCANO.ash, smoothstep(2.6, 4.4, y) * 0.7);
+          // smoldering undertone in the deepest cracks
+          col = mix3(col, VOLCANO.ember, smoothstep(0.82, 0.95, crack) * 0.8);
+          return col;
+        },
+        blendR: 8,
+        edgeSink: 7,
+      }),
+    [data]
   );
-}
-
-function SkyIslandsGround({ bounds }: { bounds: ReturnType<typeof getZoneBounds> }) {
-  if (!bounds) return null;
-
-  // Individual cloud platforms under groups of tiles
   return (
-    <group>
-      {bounds.positions.map((pos, i) => {
-        if (i % 3 !== 0) return null; // Platform every 3 tiles
-        return (
-          <group key={i} position={[pos[0], pos[1] - 1.2, pos[2]]}>
-            <mesh>
-              <sphereGeometry args={[2.5, 32, 24]} />
-              <meshStandardMaterial color="#ffffff" transparent opacity={0.6} roughness={1} />
-            </mesh>
-            <mesh position={[1.5, -0.3, 0.5]}>
-              <sphereGeometry args={[1.8, 28, 20]} />
-              <meshStandardMaterial color="#f0f5ff" transparent opacity={0.5} roughness={1} />
-            </mesh>
-            <mesh position={[-1.2, 0.2, -0.3]}>
-              <sphereGeometry args={[1.5, 28, 20]} />
-              <meshStandardMaterial color="#f5f8ff" transparent opacity={0.5} roughness={1} />
-            </mesh>
-          </group>
-        );
-      })}
-    </group>
-  );
-}
-
-function SummitGround({ bounds }: { bounds: ReturnType<typeof getZoneBounds> }) {
-  if (!bounds) return null;
-  const width = (bounds.maxX - bounds.minX) + 40;
-  const depth = (bounds.maxZ - bounds.minZ) + 30;
-  const cx = (bounds.minX + bounds.maxX) / 2;
-  const cz = (bounds.minZ + bounds.maxZ) / 2;
-
-  return (
-    <mesh position={[cx, bounds.minY - 0.4, cz]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-      <planeGeometry args={[width, depth]} />
-      <meshStandardMaterial
-        map={groundTextures().summit.map}
-        bumpMap={groundTextures().summit.bump}
-        bumpScale={0.3}
-        color="#c8a84e"
-        emissive="#ffd700"
-        emissiveIntensity={0.08}
-        roughness={0.3}
-        metalness={0.5}
-      />
+    <mesh geometry={geometry} receiveShadow>
+      <meshStandardMaterial vertexColors bumpMap={bumpTex()} bumpScale={0.6} roughness={0.96} metalness={0.06} />
     </mesh>
   );
 }
+
+// ---------------- SKY ISLANDS ----------------
+
+// No solid ground — an endless drifting cloud sea far below the path.
+function CloudSea({ data }: { data: ZoneData }) {
+  const tex = useMemo(() => {
+    const t = makeCloudTexture({ seed: 51 });
+    t.repeat.set(3, 3);
+    return t;
+  }, []);
+  const tex2 = useMemo(() => {
+    const t = makeCloudTexture({ seed: 77, count: 200 });
+    t.repeat.set(2, 2);
+    return t;
+  }, []);
+  const m1 = useRef<THREE.MeshStandardMaterial>(null);
+  const m2 = useRef<THREE.MeshStandardMaterial>(null);
+
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    if (m1.current?.map) m1.current.map.offset.set(t * 0.004, t * 0.0016);
+    if (m2.current?.map) m2.current.map.offset.set(-t * 0.0025, t * 0.001);
+  });
+
+  // Sized to blanket the islands without bleeding under the neighboring
+  // volcano/summit zones (they render simultaneously during transitions).
+  const w = data.rangeX + 28;
+  const d = data.rangeZ + 60;
+  return (
+    <group>
+      <mesh position={[data.cx, data.minY - 12, data.cz]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[w, d]} />
+        <meshStandardMaterial
+          ref={m1}
+          map={tex}
+          transparent
+          opacity={0.85}
+          roughness={1}
+          depthWrite={false}
+          color="#ffffff"
+        />
+      </mesh>
+      <mesh position={[data.cx + 8, data.minY - 16, data.cz - 6]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[w, d]} />
+        <meshStandardMaterial
+          ref={m2}
+          map={tex2}
+          transparent
+          opacity={0.6}
+          roughness={1}
+          depthWrite={false}
+          color="#b9d4ea"
+        />
+      </mesh>
+    </group>
+  );
+}
+
+// ---------------- THE SUMMIT ----------------
+
+const SUMMIT = {
+  rock: rgb('#8a7345'),
+  gold: rgb('#c9a64e'),
+  bright: rgb('#e3c468'),
+  snow: rgb('#f2f5fc'),
+};
+
+function SummitTerrain({ data }: { data: ZoneData }) {
+  const geometry = useMemo(
+    () =>
+      buildTerrain({
+        data,
+        padX: 38,
+        padZ: 36,
+        height: (x, z) =>
+          fbm2(x * 0.05, z * 0.05, 4, 61) * 2.6 +
+          (fbm2(x * 0.014, z * 0.014, 3, 62) - 0.35) * 6,
+        color: (x, z, y) => {
+          const n = fbm2(x * 0.15, z * 0.15, 3, 63);
+          const snowJitter = fbm2(x * 0.09, z * 0.09, 2, 64) * 2.5;
+          let col = mix3(SUMMIT.rock, SUMMIT.gold, smoothstep(0.3, 0.65, n));
+          col = mix3(col, SUMMIT.bright, smoothstep(0.7, 0.9, n) * 0.7);
+          // snow accumulates with altitude (the spiral climbs ~10 units)
+          const snowline = data.minY + 4.5 + snowJitter;
+          col = mix3(col, SUMMIT.snow, smoothstep(snowline, snowline + 2.2, y));
+          return col;
+        },
+        blendR: 7,
+        edgeSink: 10,
+      }),
+    [data]
+  );
+  return (
+    <mesh geometry={geometry} receiveShadow>
+      <meshStandardMaterial vertexColors bumpMap={bumpTex()} bumpScale={0.3} roughness={0.55} metalness={0.3} />
+    </mesh>
+  );
+}
+
+// ---------------- assembly ----------------
 
 export function ImmersiveGround({ positions, activeZone }: ImmersiveGroundProps) {
-  const zoneBounds = useMemo(() => {
-    return ZONES.map((zone) =>
-      getZoneBounds(positions, zone.startSquare, zone.endSquare)
-    );
+  const zoneData = useMemo<(ZoneData | null)[]>(() => {
+    return ZONES.map((zone) => {
+      const startIdx = zone.startSquare - 1;
+      const endIdx = Math.min(zone.endSquare, positions.length);
+      const zonePos = positions.slice(startIdx, endIdx);
+      if (zonePos.length === 0) return null;
+
+      let minX = Infinity, maxX = -Infinity;
+      let minZ = Infinity, maxZ = -Infinity;
+      let minY = Infinity;
+      for (const [x, y, z] of zonePos) {
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+        minZ = Math.min(minZ, z);
+        maxZ = Math.max(maxZ, z);
+        minY = Math.min(minY, y);
+      }
+
+      // Pad the flattening path with a couple of neighbor-zone points so the
+      // road stays seated through zone transitions.
+      const path = positions.slice(Math.max(0, startIdx - 2), Math.min(positions.length, endIdx + 2));
+
+      return {
+        cx: (minX + maxX) / 2,
+        cz: (minZ + maxZ) / 2,
+        minY,
+        rangeX: maxX - minX,
+        rangeZ: maxZ - minZ,
+        path,
+      };
+    });
   }, [positions]);
 
-  const GroundComponents = [
-    MeadowGround,
-    CavesGround,
-    VolcanicGround,
-    SkyIslandsGround,
-    SummitGround,
-  ];
+  const components = [MeadowTerrain, CavesTerrain, VolcanoTerrain, CloudSea, SummitTerrain];
 
   return (
     <>
       {ZONES.map((_, idx) => {
-        // Only render current zone +/- 1
         if (Math.abs(idx - activeZone) > 1) return null;
-
-        const bounds = zoneBounds[idx];
-        if (!bounds) return null;
-
-        const GroundComponent = GroundComponents[idx];
-        return <GroundComponent key={idx} bounds={bounds} />;
+        const data = zoneData[idx];
+        if (!data) return null;
+        const Terrain = components[idx];
+        return <Terrain key={idx} data={data} />;
       })}
     </>
   );

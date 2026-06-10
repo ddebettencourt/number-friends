@@ -233,10 +233,10 @@ export function ImmersiveBoard({
             <EffectComposer multisampling={4} enableNormalPass={false}>
               <Bloom
                 mipmapBlur
-                luminanceThreshold={0.62}
-                luminanceSmoothing={0.3}
-                intensity={0.85}
-                radius={0.7}
+                luminanceThreshold={0.8}
+                luminanceSmoothing={0.25}
+                intensity={0.8}
+                radius={0.65}
               />
               <Vignette eskil={false} offset={0.25} darkness={0.55} />
               <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />

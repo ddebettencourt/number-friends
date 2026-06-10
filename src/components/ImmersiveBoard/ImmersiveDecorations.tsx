@@ -235,7 +235,7 @@ function Fence({ position, length = 6, rotationY = 0 }: { position: Vec3; length
   );
 }
 
-function Butterfly({ position, color = '#ff9f43' }: { position: Vec3; color?: string }) {
+function Butterfly({ position, color = '#F9A03F' }: { position: Vec3; color?: string }) {
   const ref = useRef<Group>(null);
   const lw = useRef<Mesh>(null);
   const rw = useRef<Mesh>(null);
@@ -328,7 +328,7 @@ function Stalactites({ position, width = 10 }: { position: Vec3; width?: number 
   );
 }
 
-function GlowMushroom({ position, color = '#56d4c8', scale = 1 }: { position: Vec3; color?: string; scale?: number }) {
+function GlowMushroom({ position, color = '#4ECDC4', scale = 1 }: { position: Vec3; color?: string; scale?: number }) {
   const ref = useRef<Mesh>(null);
   useFrame((state) => {
     if (ref.current) {
@@ -366,7 +366,7 @@ function CavePool({ position, radius = 3.5 }: { position: Vec3; radius?: number 
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]}>
         <ringGeometry args={[radius, radius + 0.4, 40]} />
-        <meshStandardMaterial color="#56d4c8" emissive="#56d4c8" emissiveIntensity={0.6} transparent opacity={0.5} />
+        <meshStandardMaterial color="#4ECDC4" emissive="#4ECDC4" emissiveIntensity={0.6} transparent opacity={0.5} />
       </mesh>
     </group>
   );
@@ -491,7 +491,7 @@ function VolcanicRock({ position, scale = 1 }: { position: Vec3; scale?: number 
   );
 }
 
-function Volcano({ position }: { position: Vec3 }) {
+function Volcano({ position, scale = 1 }: { position: Vec3; scale?: number }) {
   const smoke = useRef<Group>(null);
   useFrame((state) => {
     if (!smoke.current) return;
@@ -500,17 +500,25 @@ function Volcano({ position }: { position: Vec3 }) {
       const m = c as Mesh;
       const phase = (t * 0.5 + i * 1.2) % 6;
       m.position.y = 9 + phase * 1.5;
+      m.position.x = phase * 0.5;
       m.scale.setScalar(1 + phase * 0.5);
       const mat = m.material as THREE.MeshStandardMaterial;
-      mat.opacity = Math.max(0, 0.4 - phase * 0.06);
+      mat.opacity = Math.max(0, 0.3 - phase * 0.05);
     });
   });
   return (
-    <group position={position}>
+    <group position={position} scale={scale}>
       <mesh position={[0, 4, 0]} castShadow>
         <coneGeometry args={[8, 9, 24, 1, true]} />
         <meshStandardMaterial color="#241a16" roughness={1} side={THREE.DoubleSide} />
       </mesh>
+      {/* glowing lava streaks down the flank */}
+      {[0.5, 1.8, 3.6, 4.9].map((a, i) => (
+        <mesh key={i} position={[Math.cos(a) * 4.6, 5.4 - i * 0.3, Math.sin(a) * 4.6]} rotation={[0, -a + Math.PI / 2, 0.9]}>
+          <planeGeometry args={[0.45, 5.5]} />
+          <meshStandardMaterial color="#ff4500" emissive="#ff6a00" emissiveIntensity={1} transparent opacity={0.85} side={THREE.DoubleSide} toneMapped={false} />
+        </mesh>
+      ))}
       {/* glowing crater */}
       <mesh position={[0, 8.4, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[2.4, 24]} />
@@ -536,19 +544,20 @@ function SmokePlume({ position }: { position: Vec3 }) {
     const t = state.clock.elapsedTime + position[0] * 5;
     ref.current.children.forEach((child, i) => {
       const m = child as Mesh;
-      const phase = (t * 0.4 + i * 0.5) % 5;
-      m.position.y = phase;
-      m.scale.setScalar(0.4 + phase * 0.25);
+      const phase = (t * 0.35 + i * 0.6) % 5;
+      m.position.y = phase * 1.1;
+      m.position.x = Math.sin(t * 0.5 + i) * 0.3 + phase * 0.25;
+      m.scale.setScalar(0.3 + phase * 0.22);
       const mat = m.material as THREE.MeshStandardMaterial;
-      mat.opacity = Math.max(0, 0.35 - phase * 0.07);
+      mat.opacity = Math.max(0, 0.22 - phase * 0.045);
     });
   });
   return (
     <group ref={ref} position={position}>
       {Array.from({ length: 5 }).map((_, i) => (
         <mesh key={i}>
-          <sphereGeometry args={[0.6, 16, 16]} />
-          <meshStandardMaterial color="#555555" transparent opacity={0.3} roughness={1} />
+          <sphereGeometry args={[0.42, 12, 12]} />
+          <meshStandardMaterial color="#2e2a28" transparent opacity={0.2} roughness={1} depthWrite={false} />
         </mesh>
       ))}
     </group>
@@ -574,7 +583,7 @@ function FloatingIsland({ position, scale = 1, grassy = true }: { position: Vec3
       {/* grass / stone top */}
       <mesh position={[0, 0, 0]} receiveShadow>
         <cylinderGeometry args={[2.4, 2.2, 0.8, 12]} />
-        <meshStandardMaterial color={grassy ? '#5aa84a' : '#cdbf9a'} roughness={0.85} />
+        <meshStandardMaterial color={grassy ? '#5aa84a' : '#c3cede'} roughness={0.85} />
       </mesh>
       {grassy && (
         <>
@@ -658,29 +667,29 @@ function BigCloud({ position, scale = 1 }: { position: Vec3; scale?: number }) {
     ref.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 0.12 + position[0]) * 0.4;
   });
   return (
-    <group ref={ref} position={position} scale={scale}>
+    <group ref={ref} position={position} scale={[scale, scale * 0.62, scale]}>
       <mesh>
         <sphereGeometry args={[2, 28, 22]} />
-        <meshStandardMaterial color="#ffffff" transparent opacity={0.75} roughness={1} />
+        <meshStandardMaterial color="#ffffff" transparent opacity={0.55} roughness={1} depthWrite={false} />
       </mesh>
       <mesh position={[1.5, -0.2, 0]}>
         <sphereGeometry args={[1.3, 24, 18]} />
-        <meshStandardMaterial color="#f5f8ff" transparent opacity={0.7} roughness={1} />
+        <meshStandardMaterial color="#f5f8ff" transparent opacity={0.5} roughness={1} depthWrite={false} />
       </mesh>
       <mesh position={[-1.2, 0.1, 0.5]}>
         <sphereGeometry args={[1.1, 24, 18]} />
-        <meshStandardMaterial color="#f5f8ff" transparent opacity={0.65} roughness={1} />
+        <meshStandardMaterial color="#f5f8ff" transparent opacity={0.45} roughness={1} depthWrite={false} />
       </mesh>
       <mesh position={[0.2, 0.5, -0.5]}>
         <sphereGeometry args={[1.2, 24, 18]} />
-        <meshStandardMaterial color="#ffffff" transparent opacity={0.65} roughness={1} />
+        <meshStandardMaterial color="#ffffff" transparent opacity={0.45} roughness={1} depthWrite={false} />
       </mesh>
     </group>
   );
 }
 
 function RainbowArc({ position }: { position: Vec3 }) {
-  const colors = ['#ff5b5b', '#ff9f43', '#ffe66d', '#5fd36a', '#4aa3f0', '#9b6bff'];
+  const colors = ['#ff5b5b', '#F9A03F', '#ffe66d', '#5fd36a', '#4aa3f0', '#9b6bff'];
   return (
     <group position={position} rotation={[0, position[0] * 0.3, 0]}>
       {colors.map((color, i) => (
@@ -857,6 +866,167 @@ function FloatingGem({ position }: { position: Vec3 }) {
 }
 
 // ============================================================
+//  LANDMARKS — one-of-a-kind set pieces per zone
+// ============================================================
+
+function Windmill({ position, scale = 1 }: { position: Vec3; scale?: number }) {
+  const blades = useRef<Group>(null);
+  useFrame((state) => {
+    if (blades.current) blades.current.rotation.z = state.clock.elapsedTime * 0.55;
+  });
+  return (
+    <group position={position} scale={scale}>
+      {/* tower */}
+      <mesh position={[0, 3, 0]} castShadow>
+        <cylinderGeometry args={[1.3, 1.9, 6, 10]} />
+        <meshStandardMaterial color="#d9cdb4" roughness={0.85} />
+      </mesh>
+      {/* door */}
+      <mesh position={[0, 0.9, 1.62]} rotation={[0.08, 0, 0]}>
+        <boxGeometry args={[0.8, 1.4, 0.12]} />
+        <meshStandardMaterial color="#6B4226" roughness={0.9} />
+      </mesh>
+      {/* roof */}
+      <mesh position={[0, 6.7, 0]} castShadow>
+        <coneGeometry args={[1.7, 1.8, 10]} />
+        <meshStandardMaterial color="#a04a3a" roughness={0.8} />
+      </mesh>
+      {/* hub + rotating blades */}
+      <group position={[0, 5.9, 1.45]}>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.22, 0.22, 0.5, 8]} />
+          <meshStandardMaterial color="#5b3a22" roughness={0.9} />
+        </mesh>
+        <group ref={blades}>
+          {[0, 1, 2, 3].map((i) => (
+            <group key={i} rotation={[0, 0, (i * Math.PI) / 2]}>
+              <mesh position={[0, 1.9, 0.1]}>
+                <boxGeometry args={[0.5, 3.4, 0.06]} />
+                <meshStandardMaterial color="#f0e8d4" roughness={0.8} side={THREE.DoubleSide} />
+              </mesh>
+              <mesh position={[0, 1.9, 0.06]}>
+                <boxGeometry args={[0.1, 3.6, 0.05]} />
+                <meshStandardMaterial color="#8a663f" roughness={0.9} />
+              </mesh>
+            </group>
+          ))}
+        </group>
+      </group>
+    </group>
+  );
+}
+
+function ObsidianSpire({ position, height = 5, scale = 1 }: { position: Vec3; height?: number; scale?: number }) {
+  const rot = useMemo(() => seededRandom(position[0] * 7 + position[2]) * Math.PI, [position]);
+  return (
+    <group position={position} scale={scale} rotation={[0, rot, 0]}>
+      <mesh position={[0, height / 2, 0]} rotation={[0.06, 0, -0.04]} castShadow>
+        <coneGeometry args={[0.9, height, 5]} />
+        <meshStandardMaterial color="#0e0c12" roughness={0.25} metalness={0.5} flatShading />
+      </mesh>
+      <mesh position={[1, height * 0.22, 0.4]} rotation={[0.1, 0.8, 0.2]} castShadow>
+        <coneGeometry args={[0.5, height * 0.45, 5]} />
+        <meshStandardMaterial color="#16121c" roughness={0.3} metalness={0.45} flatShading />
+      </mesh>
+      {/* ember glow seam */}
+      <mesh position={[0.35, height * 0.3, 0.55]} rotation={[0.1, 0.3, 0.5]} scale={[0.05, height * 0.35, 0.05]}>
+        <boxGeometry />
+        <meshStandardMaterial color="#ff5510" emissive="#ff6a1a" emissiveIntensity={1.2} toneMapped={false} />
+      </mesh>
+    </group>
+  );
+}
+
+function HotAirBalloon({ position, colors = ['#E84855', '#FFE66D'] }: { position: Vec3; colors?: [string, string] }) {
+  const ref = useRef<Group>(null);
+  useFrame((state) => {
+    const t = state.clock.elapsedTime * 0.3 + position[0];
+    if (ref.current) {
+      ref.current.position.x = position[0] + Math.sin(t * 0.4) * 3;
+      ref.current.position.y = position[1] + Math.sin(t * 0.8) * 1.2;
+      ref.current.position.z = position[2] + Math.cos(t * 0.33) * 3;
+      ref.current.rotation.y = Math.sin(t * 0.2) * 0.3;
+    }
+  });
+  return (
+    <group ref={ref} position={position}>
+      {/* envelope — alternating gores via thin sphere slices */}
+      {Array.from({ length: 8 }).map((_, i) => (
+        <mesh key={i} rotation={[0, (i * Math.PI) / 4, 0]} castShadow={!LOW_PERF}>
+          <sphereGeometry args={[1.6, 8, 14, 0, Math.PI / 4]} />
+          <meshStandardMaterial color={colors[i % 2]} roughness={0.6} side={THREE.DoubleSide} />
+        </mesh>
+      ))}
+      {/* skirt */}
+      <mesh position={[0, -1.45, 0]}>
+        <coneGeometry args={[0.75, 0.8, 10, 1, true]} />
+        <meshStandardMaterial color="#8a5a2a" roughness={0.8} side={THREE.DoubleSide} />
+      </mesh>
+      {/* basket */}
+      <mesh position={[0, -2.25, 0]} castShadow={!LOW_PERF}>
+        <boxGeometry args={[0.75, 0.6, 0.75]} />
+        <meshStandardMaterial color="#9a7448" roughness={0.95} />
+      </mesh>
+      {/* ropes */}
+      {[[-0.3, -0.3], [0.3, -0.3], [-0.3, 0.3], [0.3, 0.3]].map(([x, z], i) => (
+        <mesh key={i} position={[x, -1.8, z]} rotation={[z * 0.18, 0, -x * 0.18]}>
+          <cylinderGeometry args={[0.015, 0.015, 0.9, 4]} />
+          <meshStandardMaterial color="#5a4326" roughness={0.9} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+// Grand golden gate over the final tile — the goal you can see from afar.
+function SummitGate({ position }: { position: Vec3 }) {
+  const glow = useRef<Mesh>(null);
+  useFrame((state) => {
+    if (glow.current) {
+      const m = glow.current.material as THREE.MeshStandardMaterial;
+      m.emissiveIntensity = 0.7 + Math.sin(state.clock.elapsedTime * 1.4) * 0.3;
+    }
+  });
+  const gold = { color: '#d4aa50', emissive: '#ffd700', roughness: 0.18, metalness: 0.85 };
+  return (
+    <group position={position}>
+      {/* twin columns */}
+      {[-2.2, 2.2].map((x) => (
+        <group key={x} position={[x, 0, 0]}>
+          <mesh position={[0, 0.3, 0]} castShadow>
+            <boxGeometry args={[1.4, 0.6, 1.4]} />
+            <meshStandardMaterial {...gold} emissiveIntensity={0.12} />
+          </mesh>
+          <mesh position={[0, 2.6, 0]} castShadow>
+            <cylinderGeometry args={[0.42, 0.52, 4.4, 12]} />
+            <meshStandardMaterial {...gold} emissiveIntensity={0.15} />
+          </mesh>
+          <mesh position={[0, 4.95, 0]}>
+            <boxGeometry args={[1.2, 0.45, 1.2]} />
+            <meshStandardMaterial {...gold} emissiveIntensity={0.12} />
+          </mesh>
+        </group>
+      ))}
+      {/* double lintel with gentle upsweep */}
+      <mesh position={[0, 5.5, 0]} rotation={[0, 0, 0]} castShadow>
+        <boxGeometry args={[7.4, 0.5, 1.1]} />
+        <meshStandardMaterial {...gold} emissiveIntensity={0.18} />
+      </mesh>
+      <mesh position={[0, 6.2, 0]}>
+        <boxGeometry args={[8.6, 0.42, 1.25]} />
+        <meshStandardMaterial {...gold} emissiveIntensity={0.2} />
+      </mesh>
+      {/* radiant keystone */}
+      <mesh ref={glow} position={[0, 7.1, 0]}>
+        <octahedronGeometry args={[0.7]} />
+        <meshStandardMaterial color="#FFE66D" emissive="#FFE66D" emissiveIntensity={0.9} roughness={0.05} metalness={0.9} toneMapped={false} />
+      </mesh>
+      {!LOW_PERF && <pointLight position={[0, 5, 0]} color="#ffd97a" intensity={2.2} distance={18} decay={2} />}
+    </group>
+  );
+}
+
+// ============================================================
 //  Scatter helper — places items on both sides of the path
 // ============================================================
 
@@ -956,11 +1126,13 @@ export function ImmersiveDecorations({ positions, activeZone }: ImmersiveDecorat
                 })}
                 {/* a pond */}
                 <Pond position={[centerX + rangeX * 0.2, avgY, centerZ + rangeZ * 0.55 + 4]} radius={4} />
+                {/* windmill on a knoll — the meadow's landmark */}
+                <Windmill position={[centerX - rangeX * 0.28, avgY, centerZ - rangeZ * 0.5 - 7]} scale={1.15} />
                 {/* grass detail */}
                 <GrassTufts count={qty(70)} centerX={centerX} centerZ={centerZ} rangeX={rangeX} rangeZ={rangeZ} avgY={avgY} seed={200} />
                 {/* butterflies */}
                 {Array.from({ length: qty(6) }).map((_, i) => {
-                  const cols = ['#ff9f43', '#ff6b9d', '#ffe66d', '#9b6bff'];
+                  const cols = ['#F9A03F', '#E84855', '#ffe66d', '#9b6bff'];
                   return <Butterfly key={`bf${i}`} position={[centerX + (seededRandom(i * 11) - 0.5) * rangeX, avgY + 1.5, centerZ + (seededRandom(i * 13) - 0.5) * rangeZ]} color={cols[i % 4]} />;
                 })}
                 {/* pollen / sun motes */}
@@ -988,7 +1160,7 @@ export function ImmersiveDecorations({ positions, activeZone }: ImmersiveDecorat
                 })}
                 {/* glowing mushrooms */}
                 {scatterSides(14, 110, data, 1, 5).map((p, i) => {
-                  const cols = ['#56d4c8', '#98ec65', '#61dafb', '#c678dd'];
+                  const cols = ['#4ECDC4', '#7BC970', '#5BA3FC', '#B97CD4'];
                   return <GlowMushroom key={`gm${i}`} position={p} color={cols[i % 4]} scale={0.8 + seededRandom(i * 7) * 0.8} />;
                 })}
                 {/* rock piles */}
@@ -999,7 +1171,7 @@ export function ImmersiveDecorations({ positions, activeZone }: ImmersiveDecorat
                 <CavePool position={[centerX - rangeX * 0.15, avgY - 0.3, centerZ + rangeZ * 0.45 + 3]} radius={3.5} />
                 {/* fireflies / motes */}
                 {Array.from({ length: qty(12) }).map((_, i) => {
-                  const cols = ['#aef3e0', '#98ec65', '#c8a8ff'];
+                  const cols = ['#aef3e0', '#7BC970', '#c8a8ff'];
                   return <Firefly key={`ff${i}`} position={[centerX + (seededRandom(i * 17) - 0.5) * rangeX, avgY + 2 + seededRandom(i * 19) * 4, centerZ + (seededRandom(i * 23) - 0.5) * rangeZ]} color={cols[i % 3]} />;
                 })}
                 <Sparkles position={[centerX, avgY + 4, centerZ]} count={qty(40)} scale={[rangeX, 8, rangeZ + 6]} size={2.5} speed={0.15} opacity={0.5} color="#9b8bff" />
@@ -1010,8 +1182,13 @@ export function ImmersiveDecorations({ positions, activeZone }: ImmersiveDecorat
           case 2:
             return (
               <group key={zone.name}>
-                {/* distant volcano */}
-                <Volcano position={[centerX - rangeX * 0.1, avgY - 2, centerZ - rangeZ * 0.5 - 18]} />
+                {/* twin volcanoes flanking the ridge */}
+                <Volcano position={[centerX - rangeX * 0.1, avgY - 2, centerZ - rangeZ * 0.5 - 20]} scale={1.5} />
+                <Volcano position={[centerX + rangeX * 0.42, avgY - 3, centerZ + rangeZ * 0.5 + 24]} scale={1.1} />
+                {/* obsidian spires */}
+                {scatterSides(7, 200, data, 3.5, 9).map((p, i) => (
+                  <ObsidianSpire key={`os${i}`} position={p} height={3.5 + seededRandom(i * 13) * 4} scale={0.8 + seededRandom(i * 17) * 0.6} />
+                ))}
                 {/* lava rivers */}
                 {Array.from({ length: 3 }).map((_, i) => {
                   const lx = data.minX + (i + 0.5) * (rangeX / 3);
@@ -1026,9 +1203,9 @@ export function ImmersiveDecorations({ positions, activeZone }: ImmersiveDecorat
                 {scatterSides(8, 90, data, 2, 8).map((p, i) => (
                   <BasaltColumns key={`bc${i}`} position={p} count={3 + Math.floor(seededRandom(i * 3) * 3)} />
                 ))}
-                {/* volcanic rocks */}
-                {scatterSides(12, 130, data, 1.5, 7).map((p, i) => (
-                  <VolcanicRock key={`vr${i}`} position={p} scale={1 + seededRandom(i * 7) * 1.6} />
+                {/* volcanic rocks — small and clear of the path */}
+                {scatterSides(10, 130, data, 4, 10).map((p, i) => (
+                  <VolcanicRock key={`vr${i}`} position={p} scale={0.55 + seededRandom(i * 7) * 0.8} />
                 ))}
                 {/* charred trees */}
                 {scatterSides(8, 170, data, 2, 7).map((p, i) => (
@@ -1047,13 +1224,19 @@ export function ImmersiveDecorations({ positions, activeZone }: ImmersiveDecorat
           case 3:
             return (
               <group key={zone.name}>
-                {/* clouds */}
-                {Array.from({ length: qty(14) }).map((_, i) => {
-                  const cx = centerX + (seededRandom(i * 3 + 90) - 0.5) * (rangeX + 18);
-                  const cz = centerZ + (seededRandom(i * 3 + 91) - 0.5) * (rangeZ + 14);
-                  const cy = avgY - 4 + seededRandom(i * 3 + 92) * 8;
-                  return <BigCloud key={`cl${i}`} position={[cx, cy, cz]} scale={1 + seededRandom(i * 3 + 93) * 1.6} />;
+                {/* clouds — kept well clear of the path corridor so the
+                    camera never flies through white mush */}
+                {Array.from({ length: qty(10) }).map((_, i) => {
+                  const side = i % 2 === 0 ? 1 : -1;
+                  const cx = centerX + (seededRandom(i * 3 + 90) - 0.5) * (rangeX + 24);
+                  const cz = centerZ + side * (rangeZ * 0.55 + 8 + seededRandom(i * 3 + 91) * 14);
+                  const high = seededRandom(i * 3 + 94) > 0.6;
+                  const cy = high ? avgY + 9 + seededRandom(i * 3 + 92) * 5 : avgY - 7 - seededRandom(i * 3 + 92) * 6;
+                  return <BigCloud key={`cl${i}`} position={[cx, cy, cz]} scale={1 + seededRandom(i * 3 + 93) * 1.4} />;
                 })}
+                {/* hot-air balloons drifting between the islands */}
+                <HotAirBalloon position={[centerX - rangeX * 0.25, avgY + 7, centerZ - rangeZ * 0.5 - 10]} colors={['#E84855', '#FFE66D']} />
+                <HotAirBalloon position={[centerX + rangeX * 0.3, avgY + 4.5, centerZ + rangeZ * 0.5 + 12]} colors={['#3185FC', '#f4fbff']} />
                 {/* floating islands */}
                 {scatterSides(10, 60, data, 4, 12).map((p, i) => (
                   <FloatingIsland key={`fi${i}`} position={[p[0], p[1] - 3 - seededRandom(i * 5) * 4, p[2]]} scale={1 + seededRandom(i * 7) * 1.2} grassy={i % 3 !== 0} />
@@ -1103,6 +1286,17 @@ export function ImmersiveDecorations({ positions, activeZone }: ImmersiveDecorat
                 {scatterSides(8, 130, data, 1, 5).map((p, i) => (
                   <FloatingGem key={`sg${i}`} position={[p[0], p[1] + 1.5 + seededRandom(i * 4) * 3, p[2]]} />
                 ))}
+                {/* the golden gate over square 100 — visible from across the zone */}
+                {positions.length >= 100 && (() => {
+                  const [gx, gy, gz] = positions[99];
+                  const [px, , pz] = positions[98];
+                  const yaw = Math.atan2(gx - px, gz - pz);
+                  return (
+                    <group position={[gx, gy - 0.4, gz]} rotation={[0, yaw, 0]}>
+                      <SummitGate position={[0, 0, 0]} />
+                    </group>
+                  );
+                })()}
                 {/* aurora ribbons high above */}
                 <Aurora position={[centerX, avgY + 16, centerZ - 10]} />
                 {/* falling snow */}
@@ -1120,7 +1314,7 @@ export function ImmersiveDecorations({ positions, activeZone }: ImmersiveDecorat
 
 // FlowerPatch kept from original (improved petals)
 function FlowerPatch({ position }: { position: Vec3 }) {
-  const colors = ['#ff6b9d', '#ff9f43', '#ffd93d', '#ee5a24', '#c678dd'];
+  const colors = ['#E84855', '#F9A03F', '#FFE66D', '#ee5a24', '#9B59B6'];
   return (
     <group position={position}>
       {Array.from({ length: 6 }).map((_, i) => {
