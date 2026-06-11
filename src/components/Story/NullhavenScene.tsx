@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 import { useStoryStore } from '../../stores/storyStore';
 import { DialogueScene, type DialogueLine } from './DialogueScene';
 import { useAmbient } from './AmbientBubble';
+import { ChapterTitle } from './ChapterTitle';
+import { makeCloudTexture } from '../ImmersiveBoard/proceduralTextures';
 import { LOW_PERF } from '../../utils/perf';
 import {
   useMovementRefs, useKeyboardMovement, isTouchDevice,
@@ -210,6 +212,69 @@ function SplashRing({ at }: { at: THREE.Vector3 | null }) {
   );
 }
 
+
+// Low mist drifting over the water
+function MarshMist() {
+  const tex = useMemo(() => {
+    const t = makeCloudTexture({ seed: 91, count: 180 });
+    t.repeat.set(2.5, 2.5);
+    return t;
+  }, []);
+  const m1 = useRef<THREE.MeshStandardMaterial>(null);
+  const m2 = useRef<THREE.MeshStandardMaterial>(null);
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    if (m1.current?.map) m1.current.map.offset.set(t * 0.006, t * 0.0025);
+    if (m2.current?.map) m2.current.map.offset.set(-t * 0.004, t * 0.0018);
+  });
+  return (
+    <group>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.55, -1]}>
+        <planeGeometry args={[42, 30]} />
+        <meshStandardMaterial ref={m1} map={tex} transparent opacity={0.16} depthWrite={false} color="#bfe3de" />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[3, 1.05, 1]}>
+        <planeGeometry args={[40, 26]} />
+        <meshStandardMaterial ref={m2} map={tex} transparent opacity={0.1} depthWrite={false} color="#9fc6d8" />
+      </mesh>
+    </group>
+  );
+}
+
+// Drifting marsh-lights
+function Fireflies({ count = 9 }: { count?: number }) {
+  const group = useRef<THREE.Group>(null);
+  const seeds = useMemo(() => Array.from({ length: count }, (_, i) => ({
+    x: (Math.sin(i * 12.9898) * 43758.5453) % 1 * 16 - 8,
+    z: (Math.sin(i * 78.233) * 12543.123) % 1 * 14 - 7,
+    p: i * 1.7,
+  })), [count]);
+  useFrame((state) => {
+    if (!group.current) return;
+    const t = state.clock.elapsedTime;
+    group.current.children.forEach((c, i) => {
+      const s2 = seeds[i];
+      c.position.set(
+        s2.x + Math.sin(t * 0.5 + s2.p) * 1.6,
+        1 + Math.sin(t * 0.9 + s2.p * 2) * 0.7,
+        s2.z + Math.cos(t * 0.4 + s2.p) * 1.6
+      );
+      const m = (c as THREE.Mesh).material as THREE.MeshStandardMaterial;
+      m.emissiveIntensity = 1.4 + Math.sin(t * 2.2 + s2.p * 3) * 0.9;
+    });
+  });
+  return (
+    <group ref={group}>
+      {seeds.map((_, i) => (
+        <mesh key={i}>
+          <sphereGeometry args={[0.055, 8, 8]} />
+          <meshStandardMaterial color="#d8ffe8" emissive="#aef3d0" emissiveIntensity={1.6} toneMapped={false} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 function MarshDressing() {
   return (
     <group>
@@ -252,6 +317,14 @@ function MarshDressing() {
       <Model url={M('rock_largeB')} position={[7.2, -0.3, 3.4]} scale={1.5} rotation={[0, 0.6, 0]} />
       <Model url={M('rock_tallA')} position={[-7.6, -0.3, 4.5]} scale={1.3} rotation={[0, 1.4, 0]} />
       <Model url={M('hanging_moss')} position={[-6.5, 2.6, START_Z + 4]} scale={2.2} />
+      <Model url={M('lily_large')} position={[-2.2, -0.13, -1.8]} scale={1.3} rotation={[0, 0.7, 0]} />
+      <Model url={M('lily_small')} position={[2.4, -0.13, -3.6]} scale={1.5} rotation={[0, 2.8, 0]} />
+      <Model url={M('grass_leafs')} position={[6.2, -0.2, -1.2]} scale={1.8} rotation={[0, 0.4, 0]} />
+      <Model url={M('grass_leafs')} position={[-6.4, -0.2, 1.8]} scale={1.6} rotation={[0, 2.2, 0]} />
+      <Model url={M('mushroom_red')} position={[4.4, -0.26, START_Z + 3]} scale={1.6} />
+      <Model url={M('stump_old')} position={[-2.4, -0.3, START_Z + 4.6]} scale={1.8} rotation={[0, 1.1, 0]} />
+      <Model url={M('rock_smallFlatB')} position={[1.4, -0.25, BANK_Z - 4.6]} scale={1.6} />
+      <Model url={M('flower_purpleA')} position={[-4.8, -0.26, BANK_Z - 1.8]} scale={1.7} />
     </group>
   );
 }
@@ -308,10 +381,10 @@ function FacingWatcher({ refs, active, getCandidates, onFaced }: {
 }
 
 // --- Main scene -----------------------------------------------------------------------
-type ScenePhase = 'intro' | 'explore' | 'outro';
+type ScenePhase = 'title' | 'intro' | 'explore' | 'outro';
 
 export function NullhavenScene() {
-  const [phase, setPhase] = useState<ScenePhase>('intro');
+  const [phase, setPhase] = useState<ScenePhase>('title');
   const [sum, setSum] = useState(0);
   const [fails, setFails] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
@@ -512,6 +585,8 @@ export function NullhavenScene() {
           <Sparkles position={[0, 1.5, 0]} count={LOW_PERF ? 14 : 36} scale={[18, 4, 16]} size={2} speed={0.18} opacity={0.5} color="#9fe8df" />
 
           <MarshWater />
+          <MarshMist />
+          {!LOW_PERF && <Fireflies />}
           <MarshDressing />
           <SplashRing at={splash} />
 
@@ -627,6 +702,9 @@ export function NullhavenScene() {
         <HopButton visible={!!faced} onHop={() => { if (faced) refs.requestHop(faced); }} />
       )}
 
+      {phase === 'title' && (
+        <ChapterTitle eyebrow="Chapter One" title="Nullhaven, the Mirror Marsh" accent="#4ECDC4" onDone={() => setPhase('intro')} />
+      )}
       {phase === 'intro' && (
         <DialogueScene lines={INTRO} onComplete={() => setPhase('explore')} skipLabel="Skip" />
       )}

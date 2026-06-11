@@ -13,6 +13,7 @@ import {
 } from './movement';
 import { clockAnswer, caesarEncode, caesarDecode, houseAt } from './storyLogic';
 import { useAmbient } from './AmbientBubble';
+import { ChapterTitle } from './ChapterTitle';
 
 // ============================================================
 //  Chapter 2 — The Clockwork Commons.
@@ -60,6 +61,56 @@ const PLAINTEXT = 'THE HOURS TURN';
 const SHIFT = 3;
 const CIPHERTEXT = caesarEncode(PLAINTEXT, SHIFT);
 const decode = caesarDecode;
+
+// A big soft moon hanging over the north gate
+function Moon() {
+  return (
+    <group position={[6, 26, -52]}>
+      <mesh>
+        <circleGeometry args={[7, 40]} />
+        <meshBasicMaterial color="#f3ead2" toneMapped={false} />
+      </mesh>
+      <mesh position={[0, 0, -0.2]}>
+        <circleGeometry args={[10.5, 40]} />
+        <meshBasicMaterial color="#cdbf9a" transparent opacity={0.16} />
+      </mesh>
+      <mesh position={[-2.1, 1.4, 0.05]}>
+        <circleGeometry args={[1.1, 20]} />
+        <meshBasicMaterial color="#ddd2b4" />
+      </mesh>
+      <mesh position={[1.8, -1.8, 0.05]}>
+        <circleGeometry args={[0.7, 20]} />
+        <meshBasicMaterial color="#ddd2b4" />
+      </mesh>
+    </group>
+  );
+}
+
+// Lazy smoke from a chimney
+function ChimneySmoke({ position }: { position: [number, number, number] }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame((state) => {
+    if (!ref.current) return;
+    const t = state.clock.elapsedTime + position[0] * 3;
+    ref.current.children.forEach((c, i) => {
+      const m = c as THREE.Mesh;
+      const phase = (t * 0.3 + i * 0.7) % 4;
+      m.position.set(Math.sin(t * 0.6 + i) * 0.2 + phase * 0.3, phase * 0.9, 0);
+      m.scale.setScalar(0.16 + phase * 0.16);
+      (m.material as THREE.MeshStandardMaterial).opacity = Math.max(0, 0.3 - phase * 0.075);
+    });
+  });
+  return (
+    <group ref={ref} position={position}>
+      {Array.from({ length: 4 }).map((_, i) => (
+        <mesh key={i}>
+          <sphereGeometry args={[0.5, 10, 10]} />
+          <meshStandardMaterial color="#b9b2c4" transparent opacity={0.25} depthWrite={false} roughness={1} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
 
 // --- An hour-house, built from clean primitives ---------------------------------
 // (The kit wall panels have corner origins that left visible seams; these are
@@ -113,6 +164,16 @@ function HourHouse({ hour, flash }: { hour: number; flash: 'gold' | 'red' | null
         <coneGeometry args={[Math.SQRT1_2 * (BODY_W + 0.74), 0.12, 4]} />
         <meshStandardMaterial color="#2e2638" roughness={0.95} flatShading />
       </mesh>
+      {/* chimney on alternating houses */}
+      {hour % 3 === 1 && (
+        <>
+          <mesh position={[0.7, BODY_H + 0.78, -0.5]} castShadow>
+            <boxGeometry args={[0.3, 0.85, 0.3]} />
+            <meshStandardMaterial color="#8a8694" roughness={0.95} />
+          </mesh>
+          <ChimneySmoke position={[0.7, BODY_H + 1.25, -0.5]} />
+        </>
+      )}
       {/* door: arched dark wood, slightly proud of the face */}
       <mesh position={[0, 0.62, fz + 0.03]}>
         <boxGeometry args={[0.66, 1.24, 0.1]} />
@@ -222,19 +283,66 @@ function NorthGate({ open }: { open: boolean }) {
       : 0.12 + Math.sin(state.clock.elapsedTime * 1.2) * 0.05;
     m.color.set(open ? '#FFE66D' : '#E84855');
   });
+  const stone = '#6e6a80';
+  const stoneDark = '#56526a';
   return (
     <group position={[GATE_POS.x, GROUND_Y, GATE_POS.z]}>
-      <Model url={M('pillar-stone')} position={[-2.2, 0, 0]} scale={2.6} />
-      <Model url={M('pillar-stone')} position={[2.2, 0, 0]} scale={2.6} />
-      <Model url={M('wall-arch-top-detail')} position={[0, 2.6, 0]} scale={[4.4, 2.6, 2.6]} />
+      {/* twin masonry pillars */}
+      {[-2.3, 2.3].map((x) => (
+        <group key={x} position={[x, 0, 0]}>
+          <mesh position={[0, 0.3, 0]} castShadow>
+            <boxGeometry args={[1.5, 0.6, 1.5]} />
+            <meshStandardMaterial color={stoneDark} roughness={0.95} />
+          </mesh>
+          <mesh position={[0, 2.1, 0]} castShadow>
+            <boxGeometry args={[1.1, 3.1, 1.1]} />
+            <meshStandardMaterial color={stone} roughness={0.9} />
+          </mesh>
+          {/* masonry lines */}
+          {[1.05, 1.85, 2.65].map((y) => (
+            <mesh key={y} position={[0, y, 0]}>
+              <boxGeometry args={[1.14, 0.06, 1.14]} />
+              <meshStandardMaterial color={stoneDark} roughness={0.95} />
+            </mesh>
+          ))}
+          <mesh position={[0, 3.85, 0]} castShadow>
+            <boxGeometry args={[1.35, 0.4, 1.35]} />
+            <meshStandardMaterial color={stoneDark} roughness={0.9} />
+          </mesh>
+          {/* lantern hanging from the cap */}
+          <Model url={M('lantern')} position={[0, 3.2, 0.72]} scale={1.5} />
+        </group>
+      ))}
+      {/* arch beam + keystone clock */}
+      <mesh position={[0, 4.35, 0]} castShadow>
+        <boxGeometry args={[6.4, 0.55, 1.2]} />
+        <meshStandardMaterial color={stone} roughness={0.9} />
+      </mesh>
+      <group position={[0, 5.15, 0]}>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.65, 0.65, 0.18, 24]} />
+          <meshStandardMaterial color="#2d2d5a" roughness={0.4} metalness={0.4} />
+        </mesh>
+        <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.02]}>
+          <torusGeometry args={[0.65, 0.06, 10, 28]} />
+          <meshStandardMaterial color="#d4aa50" metalness={0.8} roughness={0.25} />
+        </mesh>
+        {Array.from({ length: 12 }).map((_, i) => {
+          const a = (i / 12) * Math.PI * 2;
+          return (
+            <mesh key={i} position={[Math.sin(a) * 0.48, Math.cos(a) * 0.48, 0.12]}>
+              <boxGeometry args={[0.05, 0.14, 0.03]} />
+              <meshStandardMaterial color="#FFE66D" emissive="#FFE66D" emissiveIntensity={0.6} toneMapped={false} />
+            </mesh>
+          );
+        })}
+      </group>
       {/* the seal */}
-      <mesh ref={glowRef} position={[0, 1.7, 0]}>
-        <planeGeometry args={[3.6, 3]} />
+      <mesh ref={glowRef} position={[0, 2.1, 0]}>
+        <planeGeometry args={[3.4, 3.4]} />
         <meshBasicMaterial color="#E84855" transparent opacity={0.15} side={THREE.DoubleSide} />
       </mesh>
-      <Model url={M('lantern')} position={[-2.2, 2.9, 0.4]} scale={1.8} />
-      <Model url={M('lantern')} position={[2.2, 2.9, 0.4]} scale={1.8} />
-      <pointLight position={[0, 2.4, 1]} color={open ? '#FFE66D' : '#ff7a6a'} intensity={1.2} distance={9} decay={2} />
+      <pointLight position={[0, 2.6, 1.2]} color={open ? '#FFE66D' : '#ff7a6a'} intensity={1.3} distance={10} decay={2} />
     </group>
   );
 }
@@ -274,6 +382,17 @@ function PlazaDressing() {
       <Model url={M('hedge')} position={[hourPos(6.8, 7.4).x, GROUND_Y, hourPos(6.8, 7.4).z]} scale={2} rotation={[0, 0.5, 0]} />
       <Model url={M('tree-crooked')} position={[hourPos(2.5, 16.4).x, GROUND_Y, hourPos(2.5, 16.4).z]} scale={3} />
       <Model url={M('tree-crooked')} position={[hourPos(9.6, 16.8).x, GROUND_Y, hourPos(9.6, 16.8).z]} scale={2.6} rotation={[0, 2.1, 0]} />
+      <Model url={M('bench')} position={[hourPos(1.5, 6.4).x, GROUND_Y, hourPos(1.5, 6.4).z]} scale={1.05} rotation={[0, -hourAngle(1.5) + Math.PI, 0]} />
+      <Model url={M('bench')} position={[hourPos(7.5, 6.4).x, GROUND_Y, hourPos(7.5, 6.4).z]} scale={1.05} rotation={[0, -hourAngle(7.5) + Math.PI, 0]} />
+      <Model url={M('cart')} position={[hourPos(10.4, 8.6).x, GROUND_Y, hourPos(10.4, 8.6).z]} scale={1.4} rotation={[0, 1.2, 0]} />
+      <group position={[hourPos(3.2, 5.2).x, GROUND_Y, hourPos(3.2, 5.2).z]}>
+        <Model url={M('fire-basket')} position={[0, 0, 0]} scale={1.2} />
+        <pointLight position={[0, 1.4, 0]} color="#ffaa44" intensity={1.2} distance={7} decay={2} />
+      </group>
+      <group position={[hourPos(8.8, 5.2).x, GROUND_Y, hourPos(8.8, 5.2).z]}>
+        <Model url={M('fire-basket')} position={[0, 0, 0]} scale={1.2} />
+        <pointLight position={[0, 1.4, 0]} color="#ffaa44" intensity={1.2} distance={7} decay={2} />
+      </group>
       <Model url={M('banner-red')} position={[hourPos(0.5, 11.4).x, GROUND_Y + 1.8, hourPos(0.5, 11.4).z]} scale={2} rotation={[0, hourAngle(0.5) + Math.PI, 0]} />
       <Model url={M('banner-green')} position={[hourPos(3.5, 11.4).x, GROUND_Y + 1.8, hourPos(3.5, 11.4).z]} scale={2} rotation={[0, hourAngle(3.5) + Math.PI, 0]} />
     </group>
@@ -353,10 +472,10 @@ const OUTRO: DialogueLine[] = [
 ];
 
 // --- Main scene -------------------------------------------------------------------------------------
-type Phase = 'intro' | 'quest' | 'cipherIntro' | 'cipher' | 'outro';
+type Phase = 'title' | 'intro' | 'quest' | 'cipherIntro' | 'cipher' | 'outro';
 
 export function ClockworkScene() {
-  const [phase, setPhase] = useState<Phase>('intro');
+  const [phase, setPhase] = useState<Phase>('title');
   const [round, setRound] = useState(0);
   const [flash, setFlash] = useState<{ hour: number; kind: 'gold' | 'red' } | null>(null);
   const [nearGate, setNearGate] = useState(false);
@@ -432,6 +551,7 @@ export function ClockworkScene() {
           <hemisphereLight args={['#6f63a8', '#3a3047', 0.5]} />
           <Stars radius={55} depth={30} count={LOW_PERF ? 250 : 700} factor={2.4} saturation={0} fade speed={0.3} />
 
+          <Moon />
           <PlazaDressing />
           <PlazaCenter questHour={questActive ? r.start : null} />
           {Array.from({ length: 12 }).map((_, i) => (
@@ -528,6 +648,9 @@ export function ClockworkScene() {
       {phase === 'cipher' && touch && <VirtualJoystick refs={refs} />}
       {questActive && touch && <VirtualJoystick refs={refs} />}
 
+      {phase === 'title' && (
+        <ChapterTitle eyebrow="Chapter Two" title="The Clockwork Commons" accent="#F9A03F" onDone={() => setPhase('intro')} />
+      )}
       {phase === 'intro' && <DialogueScene lines={INTRO} onComplete={() => setPhase('quest')} skipLabel="Skip" />}
       {phase === 'cipherIntro' && <DialogueScene lines={CIPHER_INTRO} onComplete={() => setPhase('cipher')} />}
       {phase === 'outro' && (
