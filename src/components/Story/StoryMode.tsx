@@ -5,6 +5,7 @@ import { useGameStore } from '../../stores/gameStore';
 import { GameContainer } from '../Game/GameContainer';
 import { PrologueDirector } from './PrologueDirector';
 import { NullhavenScene } from './NullhavenScene';
+import { ClockworkScene } from './ClockworkScene';
 import { STORY_CHARACTERS } from './characters';
 
 // ============================================================
@@ -25,7 +26,7 @@ function ComingSoon() {
       >
         <div className="flex justify-center mb-3"><Devil size={84} /></div>
         <div className="label-caps mb-2">The story continues…</div>
-        <h2 className="heading-2 text-gradient-cyan mb-3">The Clockwork Commons</h2>
+        <h2 className="heading-2 text-gradient-cyan mb-3">The Doubling Delta</h2>
         <p className="font-body text-[var(--color-text-secondary)] mb-6">
           The next chapter is still being written. The Devil, for one, is in no hurry
           for you to arrive.
@@ -61,6 +62,10 @@ export function StoryMode() {
 
   if (chapter === 'nullhaven') {
     return <NullhavenScene />;
+  }
+
+  if (chapter === 'clockwork') {
+    return <ClockworkScene />;
   }
 
   return <ComingSoon />;

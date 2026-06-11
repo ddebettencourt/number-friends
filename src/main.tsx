@@ -4,10 +4,15 @@ import './index.css'
 import App from './App.tsx'
 import { useGameStore } from './stores/gameStore.ts'
 
-// Dev-only: expose the game store for debugging/visual testing
-// (e.g. `nfStore.getState().skipToPosition(50)` from the console).
+// Dev-only: expose stores for debugging/visual testing
+// (e.g. `nfStore.getState().skipToPosition(50)` or
+//  `nfStory.getState().goToChapter('clockwork')` from the console).
 if (import.meta.env.DEV) {
-  ;(window as unknown as Record<string, unknown>).nfStore = useGameStore
+  const w = window as unknown as Record<string, unknown>
+  w.nfStore = useGameStore
+  import('./stores/storyStore.ts').then((m) => {
+    w.nfStory = m.useStoryStore
+  })
 }
 
 createRoot(document.getElementById('root')!).render(

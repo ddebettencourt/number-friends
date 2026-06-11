@@ -1,17 +1,22 @@
 import { Suspense, useMemo, useRef, useState } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { Stars, Sparkles, Text, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { motion } from 'framer-motion';
 import { useStoryStore } from '../../stores/storyStore';
 import { DialogueScene, type DialogueLine } from './DialogueScene';
 import { LOW_PERF } from '../../utils/perf';
+import {
+  useMovementRefs, useKeyboardMovement, isTouchDevice,
+  PlayerMover, VirtualJoystick, StoryFollowCamera, StoryPawn,
+  type ClampResult,
+} from './movement';
 
 // ============================================================
 //  Chapter 1 — Nullhaven, the Mirror Marsh.
-//  Fully walkable: tap anywhere on land to walk, hop the numbered
-//  stones across the water. The marsh only holds a traveler whose
-//  running sum is exactly zero.
+//  Free movement: WASD / joystick / tap. Push off a bank toward a
+//  stone and you hop it. Forward hops add the stone's value;
+//  backward hops take it back — subtraction is just walking home.
 // ============================================================
 
 const M = (name: string) => `/models/kenney/${name}.glb`;
@@ -28,7 +33,6 @@ function Model({ url, position, rotation = [0, 0, 0], scale = 1 }: {
 }
 
 // --- Puzzle layout ----------------------------------------------------------
-// 5 columns of 3 stones. Intended zero path: +4, -7, +5, -2, 0.
 const STONE_COLS: number[][] = [
   [4, 1, -2],
   [-7, 3, -1],
@@ -42,88 +46,25 @@ const STONE_GAP = 2.5;
 const START_Z = 6.5;
 const colZ = (col: number) => START_Z - (col + 1) * COL_SPACING;
 const stoneX = (idx: number) => (idx - 1) * STONE_GAP;
-const BANK_Z = colZ(STONE_COLS.length); // far bank
-const SOUTH_BANK: [number, number, number] = [0, 0, START_Z + 3.4];
-const NORTH_BANK: [number, number, number] = [0, 0, BANK_Z - 3.2];
+const BANK_Z = colZ(STONE_COLS.length);
+const SOUTH_C = new THREE.Vector3(0, 0, START_Z + 3.4);
+const NORTH_C = new THREE.Vector3(0, 0, BANK_Z - 3.2);
+// Walkable radii sit just short of the first/last stone columns so a push
+// off the bank always has a hop candidate ahead.
+const SOUTH_R = 5.4;
+const NORTH_R = 6.4;
+const STONE_R = 1.0;
+const BANK_Y = 0.32;
+const STONE_Y = 0.52;
+const HOP_RANGE = 3.6;
 
-// Where the pawn is allowed to stand, logically
-type PawnSpot =
-  | { kind: 'south'; point: THREE.Vector3 }
-  | { kind: 'stone'; col: number; idx: number }
-  | { kind: 'north'; point: THREE.Vector3 };
+type Region = { kind: 'south' } | { kind: 'north' } | { kind: 'stone'; col: number; idx: number };
 
-function spotPosition(spot: PawnSpot): THREE.Vector3 {
-  if (spot.kind === 'stone') {
-    return new THREE.Vector3(stoneX(spot.idx), 0.5, colZ(spot.col));
-  }
-  return spot.point.clone().setY(0.32);
+function stoneCenter(col: number, idx: number): THREE.Vector3 {
+  return new THREE.Vector3(stoneX(idx), STONE_Y, colZ(col));
 }
 
-// --- Your pawn — the one that fell off the board ----------------------------
-function StoryPawn({ posRef, movingRef, facingRef }: {
-  posRef: React.MutableRefObject<THREE.Vector3>;
-  movingRef: React.MutableRefObject<boolean>;
-  facingRef: React.MutableRefObject<number>;
-}) {
-  const group = useRef<THREE.Group>(null);
-  useFrame((state) => {
-    if (!group.current) return;
-    group.current.position.copy(posRef.current);
-    // walk-bob while moving, gentle idle breathing otherwise
-    const t = state.clock.elapsedTime;
-    if (movingRef.current) {
-      group.current.position.y += Math.abs(Math.sin(t * 10)) * 0.18;
-      group.current.rotation.z = Math.sin(t * 10) * 0.06;
-    } else {
-      group.current.position.y += Math.sin(t * 2) * 0.03;
-      group.current.rotation.z = 0;
-    }
-    group.current.rotation.y = facingRef.current;
-  });
-  return (
-    <group ref={group}>
-      {/* body — same silhouette as the board pawns */}
-      <mesh position={[0, 0.25, 0]} castShadow>
-        <capsuleGeometry args={[0.2, 0.3, 8, 16]} />
-        <meshStandardMaterial color="#E84855" roughness={0.3} metalness={0.15} />
-      </mesh>
-      <mesh position={[0, 0.62, 0]} castShadow>
-        <sphereGeometry args={[0.205, 16, 16]} />
-        <meshStandardMaterial color="#E84855" roughness={0.25} metalness={0.15} emissive="#E84855" emissiveIntensity={0.12} />
-      </mesh>
-      {/* little eyes so it reads as *you* out here in the dark */}
-      <mesh position={[-0.07, 0.66, 0.17]}>
-        <sphereGeometry args={[0.035, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.8} />
-      </mesh>
-      <mesh position={[0.07, 0.66, 0.17]}>
-        <sphereGeometry args={[0.035, 8, 8]} />
-        <meshStandardMaterial color="#ffffff" emissive="#ffffff" emissiveIntensity={0.8} />
-      </mesh>
-      {/* soft ground ring */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
-        <ringGeometry args={[0.26, 0.36, 20]} />
-        <meshBasicMaterial color="#E84855" transparent opacity={0.35} />
-      </mesh>
-    </group>
-  );
-}
-
-// --- Follow camera -----------------------------------------------------------
-function FollowCamera({ posRef }: { posRef: React.MutableRefObject<THREE.Vector3> }) {
-  const { camera } = useThree();
-  const look = useRef(new THREE.Vector3());
-  useFrame((_, delta) => {
-    const target = posRef.current;
-    const desired = new THREE.Vector3(target.x * 0.6, target.y + 5.2, target.z + 6.8);
-    camera.position.lerp(desired, Math.min(1, delta * 2.2));
-    look.current.lerp(new THREE.Vector3(target.x, target.y + 0.6, target.z - 1), Math.min(1, delta * 2.6));
-    camera.lookAt(look.current);
-  });
-  return null;
-}
-
-// --- Zero --------------------------------------------------------------------
+// --- Zero (stationary host on his island) ------------------------------------
 function Zero3D({ position }: { position: [number, number, number] }) {
   const group = useRef<THREE.Group>(null);
   useFrame((state) => {
@@ -155,40 +96,35 @@ function Zero3D({ position }: { position: [number, number, number] }) {
   );
 }
 
-// --- Stones ------------------------------------------------------------------
-function Stone({ value, position, reachable, occupied, onStep }: {
+// --- Stones --------------------------------------------------------------------
+function Stone({ value, position, reachable, occupied, onTap }: {
   value: number;
   position: [number, number, number];
   reachable: boolean;
   occupied: boolean;
-  onStep: () => void;
+  onTap: () => void;
 }) {
-  const [hovered, setHovered] = useState(false);
   const ref = useRef<THREE.Group>(null);
   useFrame((state) => {
     if (!ref.current) return;
     const bob = Math.sin(state.clock.elapsedTime * 0.9 + position[0] * 2 + position[2]) * 0.04;
-    ref.current.position.y = position[1] + bob + (hovered && reachable ? 0.1 : 0);
+    ref.current.position.y = position[1] + bob;
   });
-
   const labelColor = value === 0 ? '#eafffd' : value > 0 ? '#FFE66D' : '#7FDBFF';
-
   return (
     <group
       ref={ref}
       position={position}
       onClick={(e) => {
         e.stopPropagation();
-        if (reachable) onStep();
+        onTap();
       }}
-      onPointerOver={() => reachable && setHovered(true)}
-      onPointerOut={() => setHovered(false)}
     >
       <Model url={M('path_stoneCircle')} position={[0, 0, 0]} scale={[1.7, 1.4, 1.7]} />
       {reachable && (
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.16, 0]}>
           <ringGeometry args={[0.78, 0.95, 28]} />
-          <meshBasicMaterial color="#4ECDC4" transparent opacity={hovered ? 0.9 : 0.45} />
+          <meshBasicMaterial color="#4ECDC4" transparent opacity={0.45} />
         </mesh>
       )}
       {occupied && (
@@ -212,7 +148,7 @@ function Stone({ value, position, reachable, occupied, onStep }: {
   );
 }
 
-// --- Water & dressing ---------------------------------------------------------
+// --- Water, splash, dressing -----------------------------------------------------
 function MarshWater() {
   const ref = useRef<THREE.Mesh>(null);
   useFrame((state) => {
@@ -259,12 +195,11 @@ function SplashRing({ at }: { at: THREE.Vector3 | null }) {
 function MarshDressing() {
   return (
     <group>
-      {/* banks */}
-      <mesh position={[SOUTH_BANK[0], -0.12, SOUTH_BANK[2]]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <mesh position={[SOUTH_C.x, -0.12, SOUTH_C.z]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <circleGeometry args={[7.5, 28]} />
         <meshStandardMaterial color="#36474f" roughness={0.95} />
       </mesh>
-      <mesh position={[NORTH_BANK[0], -0.1, NORTH_BANK[2]]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <mesh position={[NORTH_C.x, -0.1, NORTH_C.z]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <circleGeometry args={[7, 28]} />
         <meshStandardMaterial color="#3a4d56" roughness={0.95} />
       </mesh>
@@ -303,11 +238,12 @@ function MarshDressing() {
   );
 }
 
-// --- Dialogue ------------------------------------------------------------------
+// --- Dialogue ----------------------------------------------------------------------
 const INTRO: DialogueLine[] = [
   { speaker: 'zero', text: 'Welcome to Nullhaven. My home — the Mirror Marsh, where everything cancels.' },
   { speaker: 'zero', text: 'Every number here has a twin across the water. Four and minus-four. Seven and minus-seven. Equal. Opposite. Inseparable.' },
-  { speaker: 'zero', text: 'Come to me across the stones — but listen: the marsh only holds a traveler whose steps balance. Step on a +4, and you owe the water a −4.' },
+  { speaker: 'zero', text: 'Come to me across the stones. Walk right up to the water and leap — but listen: the marsh only holds a traveler whose steps balance.' },
+  { speaker: 'zero', text: 'Step on a +4, and you owe the water a −4. And if you regret a step? Hop back. Taking a step back takes its number back, too.' },
   { speaker: 'zero', text: 'Reach my island carrying exactly nothing. I know how that sounds. Carrying nothing is my entire life.' },
 ];
 
@@ -315,7 +251,7 @@ const OUTRO: DialogueLine[] = [
   { speaker: 'zero', text: 'Perfectly balanced. You felt it, didn’t you? Adding and subtracting are the same walk — in opposite directions.' },
   { speaker: 'zero', text: 'The Devil believes people forgot that. Forgot all of it. Maybe he’s not entirely wrong. But locking the numbers away won’t make anyone remember.' },
   { speaker: 'zero', text: 'I’m coming with you. A journey to the Hundredth Square needs someone who knows the value of nothing.' },
-  { speaker: 'narrator', text: 'Zero joined your party. — End of Chapter One. The Clockwork Commons lies ahead… (coming soon).' },
+  { speaker: 'narrator', text: 'Zero joined your party. — Next: The Clockwork Commons.' },
 ];
 
 const FAIL_LINES = [
@@ -323,72 +259,173 @@ const FAIL_LINES = [
   'Still unbalanced. Every step you take, the water remembers its mirror.',
 ];
 
-// --- Main scene -------------------------------------------------------------------
+// --- Main scene -----------------------------------------------------------------------
 type ScenePhase = 'intro' | 'explore' | 'outro';
 
 export function NullhavenScene() {
   const [phase, setPhase] = useState<ScenePhase>('intro');
-  const [spot, setSpot] = useState<PawnSpot>({ kind: 'south', point: new THREE.Vector3(0, 0, START_Z + 1.6) });
   const [sum, setSum] = useState(0);
   const [fails, setFails] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
   const [splash, setSplash] = useState<THREE.Vector3 | null>(null);
+  const [regionState, setRegionState] = useState<Region>({ kind: 'south' });
   const completeChapter = useStoryStore((s) => s.completeChapter);
-  const exitStory = useStoryStore((s) => s.exitStory);
 
-  // Pawn position is animated imperatively for smoothness
-  const pawnPos = useRef(new THREE.Vector3(0, 0.32, START_Z + 1.6));
-  const moving = useRef(false);
-  const facingRef = useRef(0);
-  const targetRef = useRef(spotPosition(spot));
+  const refs = useMovementRefs([0, BANK_Y, START_Z + 1.6]);
+  useKeyboardMovement(refs, phase === 'explore');
+  const touch = useMemo(() => isTouchDevice(), []);
 
-  // Per-frame mover lives in a child of <Canvas>; declared here as a component
-  function PawnMover() {
-    useFrame((_, delta) => {
-      const target = targetRef.current;
-      const dist = pawnPos.current.distanceTo(target);
-      moving.current = dist > 0.08;
-      if (moving.current) {
-        const step = Math.min(dist, delta * 4.2);
-        const dir = target.clone().sub(pawnPos.current).normalize();
-        pawnPos.current.add(dir.multiplyScalar(step));
-        facingRef.current = Math.atan2(dir.x, dir.z);
-      }
-    });
-    return null;
-  }
+  // Logic-side mirrors (clamp runs every frame; React state is for rendering)
+  const regionRef = useRef<Region>({ kind: 'south' });
+  const sumRef = useRef(0);
+  const failsRef = useRef(0);
 
-  const goTo = (next: PawnSpot) => {
-    setSpot(next);
-    targetRef.current = spotPosition(next);
-    setToast(null);
+  const setRegion = (r: Region) => {
+    regionRef.current = r;
+    setRegionState(r);
   };
 
-  const stepToStone = (c: number, idx: number) => {
-    const value = STONE_COLS[c][idx];
-    goTo({ kind: 'stone', col: c, idx });
-    setSum((s) => s + value);
+  const addSum = (d: number) => {
+    sumRef.current += d;
+    setSum(sumRef.current);
   };
 
-  const arriveNorth = (point: THREE.Vector3) => {
-    if (sum === 0) {
-      goTo({ kind: 'north', point });
+  const washBack = () => {
+    setSplash(refs.pos.current.clone());
+    failsRef.current += 1;
+    setFails(failsRef.current);
+    setToast(
+      `${FAIL_LINES[Math.min(failsRef.current - 1, FAIL_LINES.length - 1)]} (You were carrying ${sumRef.current > 0 ? '+' : ''}${sumRef.current}.)`
+    );
+    sumRef.current = 0;
+    setSum(0);
+    setRegion({ kind: 'south' });
+    refs.teleport(0, BANK_Y, START_Z + 1.6);
+
+    setTimeout(() => setSplash(null), 900);
+  };
+
+  const arriveNorth = () => {
+    if (sumRef.current === 0) {
+      setRegion({ kind: 'north' });
       setTimeout(() => setPhase('outro'), 1100);
     } else {
-      // splash where the pawn stood, then wash back to the south bank
-      setSplash(pawnPos.current.clone());
-      const f = fails + 1;
-      setFails(f);
-      setToast(
-        `${FAIL_LINES[Math.min(f - 1, FAIL_LINES.length - 1)]} (You were carrying ${sum > 0 ? '+' : ''}${sum}.)`
-      );
-      setSum(0);
-      goTo({ kind: 'south', point: new THREE.Vector3(0, 0, START_Z + 1.6) });
-      setTimeout(() => setSplash(null), 900);
+      washBack();
     }
   };
 
-  const currentCol = spot.kind === 'stone' ? spot.col : spot.kind === 'south' ? -1 : STONE_COLS.length;
+  // --- the walkable-space clamp + hop logic ---
+  const clamp = (next: THREE.Vector3, current: THREE.Vector3, dir: THREE.Vector3): ClampResult => {
+    const r = regionRef.current;
+
+    const inSouth = (p: THREE.Vector3) => Math.hypot(p.x - SOUTH_C.x, p.z - SOUTH_C.z) < SOUTH_R;
+    const inNorth = (p: THREE.Vector3) => Math.hypot(p.x - NORTH_C.x, p.z - NORTH_C.z) < NORTH_R;
+    const inStone = (p: THREE.Vector3, col: number, idx: number) =>
+      Math.hypot(p.x - stoneX(idx), p.z - colZ(col)) < STONE_R;
+
+    const stays =
+      r.kind === 'south' ? inSouth(next) :
+      r.kind === 'north' ? inNorth(next) :
+      inStone(next, r.col, r.idx);
+
+    if (stays) {
+      next.y = r.kind === 'stone' ? STONE_Y : BANK_Y;
+      return { position: next };
+    }
+
+    // Pushing out of the current region — find a hop candidate in that direction
+    type Candidate = { to: THREE.Vector3; commit?: () => void };
+    const candidates: Candidate[] = [];
+
+    if (r.kind === 'south') {
+      STONE_COLS[0].forEach((v, idx) => {
+        candidates.push({
+          to: stoneCenter(0, idx),
+          commit: () => { addSum(v); setRegion({ kind: 'stone', col: 0, idx }); },
+        });
+      });
+    } else if (r.kind === 'stone') {
+      const { col, idx } = r;
+      const departed = STONE_COLS[col][idx];
+      // forward column
+      if (col + 1 < STONE_COLS.length) {
+        STONE_COLS[col + 1].forEach((v, i2) => {
+          candidates.push({
+            to: stoneCenter(col + 1, i2),
+            commit: () => { addSum(v); setRegion({ kind: 'stone', col: col + 1, idx: i2 }); },
+          });
+        });
+      } else {
+        // last column → the north shore (lands just inside the bank circle)
+        candidates.push({
+          to: new THREE.Vector3(current.x * 0.4, BANK_Y, BANK_Z + 1.5),
+          commit: arriveNorth,
+        });
+      }
+      // backward: undo the departed stone
+      if (col === 0) {
+        candidates.push({
+          to: new THREE.Vector3(current.x * 0.4, BANK_Y, START_Z - 1.6),
+          commit: () => { addSum(-departed); setRegion({ kind: 'south' }); },
+        });
+      } else {
+        STONE_COLS[col - 1].forEach((_, i2) => {
+          candidates.push({
+            to: stoneCenter(col - 1, i2),
+            commit: () => {
+              // un-step the stone we left, take the new footing's value only if
+              // it differs from the path we came by — semantics: balance is the
+              // sum of stones currently *behind* you, so swap departed for none.
+              addSum(-departed);
+              setRegion({ kind: 'stone', col: col - 1, idx: i2 });
+            },
+          });
+        });
+      }
+      // lateral within the same column: swap footing
+      STONE_COLS[col].forEach((v, i2) => {
+        if (i2 === idx) return;
+        candidates.push({
+          to: stoneCenter(col, i2),
+          commit: () => { addSum(v - departed); setRegion({ kind: 'stone', col, idx: i2 }); },
+        });
+      });
+    } else {
+      // north bank: hop back to the last column
+      STONE_COLS[STONE_COLS.length - 1].forEach((v, i2) => {
+        candidates.push({
+          to: stoneCenter(STONE_COLS.length - 1, i2),
+          commit: () => { addSum(v); setRegion({ kind: 'stone', col: STONE_COLS.length - 1, idx: i2 }); },
+        });
+      });
+    }
+
+    let best: Candidate | null = null;
+    let bestDot = 0.55;
+    for (const c of candidates) {
+      const to = c.to.clone().sub(current);
+      to.y = 0;
+      const dist = to.length();
+      if (dist > HOP_RANGE || dist < 0.05) continue;
+      const d = to.normalize().dot(dir);
+      if (d > bestDot) {
+        bestDot = d;
+        best = c;
+      }
+    }
+    if (best) return { position: current, hop: { to: best.to, commit: best.commit } };
+
+    // Blocked — try sliding along the region edge
+    const slideX = new THREE.Vector3(next.x, current.y, current.z);
+    const slideZ = new THREE.Vector3(current.x, current.y, next.z);
+    const ok = (p: THREE.Vector3) =>
+      r.kind === 'south' ? inSouth(p) : r.kind === 'north' ? inNorth(p) : inStone(p, r.col, r.idx);
+    if (ok(slideX)) return { position: slideX };
+    if (ok(slideZ)) return { position: slideZ };
+    return { position: current };
+  };
+
+  const currentCol = regionState.kind === 'stone' ? regionState.col : regionState.kind === 'south' ? -1 : STONE_COLS.length;
   const showHint = fails >= 2;
 
   return (
@@ -409,34 +446,26 @@ export function NullhavenScene() {
           <MarshDressing />
           <SplashRing at={splash} />
 
-          {/* walkable south bank: tap to walk anywhere on it */}
+          {/* tap-to-move on the banks (works alongside WASD/joystick) */}
           <mesh
-            position={[SOUTH_BANK[0], -0.08, SOUTH_BANK[2]]}
+            position={[SOUTH_C.x, -0.08, SOUTH_C.z]}
             rotation={[-Math.PI / 2, 0, 0]}
             visible={false}
             onClick={(e) => {
               e.stopPropagation();
-              if (phase !== 'explore') return;
-              if (currentCol !== -1) return; // can only stroll the bank you're on
-              const p = e.point.clone();
-              const d = Math.hypot(p.x - SOUTH_BANK[0], p.z - SOUTH_BANK[2]);
-              if (d < 6.8) goTo({ kind: 'south', point: p });
+              if (phase === 'explore') refs.setTarget(e.point);
             }}
           >
             <circleGeometry args={[7.5, 28]} />
             <meshBasicMaterial />
           </mesh>
-
-          {/* north shore: stepping ashore checks your balance */}
           <mesh
-            position={[NORTH_BANK[0], -0.06, NORTH_BANK[2]]}
+            position={[NORTH_C.x, -0.06, NORTH_C.z]}
             rotation={[-Math.PI / 2, 0, 0]}
             visible={false}
             onClick={(e) => {
               e.stopPropagation();
-              if (phase !== 'explore') return;
-              if (currentCol !== STONE_COLS.length - 1) return; // must be on the last column
-              arriveNorth(e.point.clone());
+              if (phase === 'explore') refs.setTarget(e.point);
             }}
           >
             <circleGeometry args={[7, 28]} />
@@ -451,24 +480,26 @@ export function NullhavenScene() {
             </mesh>
           )}
 
-          {/* the stones */}
           {STONE_COLS.map((colStones, c) =>
             colStones.map((value, idx) => (
               <Stone
                 key={`${c}-${idx}`}
                 value={value}
                 position={[stoneX(idx), 0.05, colZ(c)]}
-                reachable={phase === 'explore' && c === currentCol + 1}
-                occupied={spot.kind === 'stone' && spot.col === c && spot.idx === idx}
-                onStep={() => stepToStone(c, idx)}
+                reachable={phase === 'explore' && Math.abs(c - currentCol) === 1}
+                occupied={regionState.kind === 'stone' && regionState.col === c && regionState.idx === idx}
+                onTap={() => {
+                  if (phase !== 'explore') return;
+                  refs.setTarget(stoneCenter(c, idx));
+                }}
               />
             ))
           )}
 
-          <PawnMover />
-          <StoryPawn posRef={pawnPos} movingRef={moving} facingRef={facingRef} />
+          <PlayerMover refs={refs} clamp={clamp} frozen={phase !== 'explore'} />
+          <StoryPawn refs={refs} />
           <Zero3D position={[0, 1.15, BANK_Z - 2.6]} />
-          <FollowCamera posRef={pawnPos} />
+          <StoryFollowCamera refs={refs} />
         </Suspense>
       </Canvas>
 
@@ -507,10 +538,12 @@ export function NullhavenScene() {
             className="text-[11px]"
             style={{ fontFamily: 'var(--font-body)', color: 'rgba(255,255,255,0.35)' }}
           >
-            tap the land to walk · tap a glowing stone to hop
+            {touch ? 'joystick to walk · walk at a stone to hop' : 'WASD to walk · walk at a stone to hop'}
           </div>
         </div>
       )}
+
+      {phase === 'explore' && touch && <VirtualJoystick refs={refs} />}
 
       {phase === 'intro' && (
         <DialogueScene lines={INTRO} onComplete={() => setPhase('explore')} skipLabel="Skip" />
@@ -520,7 +553,7 @@ export function NullhavenScene() {
           lines={OUTRO}
           onComplete={() => {
             completeChapter('nullhaven', { companion: 'zero', flawless: fails === 0 });
-            exitStory();
+            useStoryStore.getState().goToChapter('clockwork');
           }}
         />
       )}

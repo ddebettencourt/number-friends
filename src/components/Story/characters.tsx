@@ -6,7 +6,7 @@
 // Story-mode character registry: portraits share Primo's visual language —
 // simple geometric "number-beings" with expressive eyes, drawn as inline SVG.
 
-export type StoryCharacterId = 'zero' | 'primo' | 'devil' | 'narrator';
+export type StoryCharacterId = 'zero' | 'primo' | 'devil' | 'hours' | 'narrator';
 
 interface StoryCharacter {
   name: string;
@@ -109,7 +109,44 @@ function DevilPortrait({ size = 72 }: { size?: number }) {
   );
 }
 
+function HoursPortrait({ size = 72 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none">
+      <defs>
+        <radialGradient id="hours-shine" cx="0.35" cy="0.3" r="0.7">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.3)" />
+          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+        </radialGradient>
+      </defs>
+      {/* clock body */}
+      <circle cx="40" cy="42" r="28" fill="#F9A03F" />
+      <circle cx="40" cy="42" r="28" fill="url(#hours-shine)" />
+      <circle cx="40" cy="42" r="24" fill="#fdf3e3" />
+      {/* twelve ticks */}
+      {Array.from({ length: 12 }).map((_, i) => {
+        const a = (i / 12) * Math.PI * 2;
+        const x1 = 40 + Math.sin(a) * 21;
+        const y1 = 42 - Math.cos(a) * 21;
+        const x2 = 40 + Math.sin(a) * 17.5;
+        const y2 = 42 - Math.cos(a) * 17.5;
+        return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="#C67A1F" strokeWidth={i % 3 === 0 ? 2.4 : 1.4} strokeLinecap="round" />;
+      })}
+      {/* eyes */}
+      <circle cx="33" cy="38" r="3" fill="#2a1c10" />
+      <circle cx="47" cy="38" r="3" fill="#2a1c10" />
+      <circle cx="34" cy="37" r="1" fill="#fff" />
+      <circle cx="48" cy="37" r="1" fill="#fff" />
+      {/* smile made of clock hands */}
+      <path d="M40 44 L40 50 M40 50 L46 48" stroke="#2a1c10" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+      <path d="M33 52 Q40 57 47 52" stroke="#C67A1F" strokeWidth="2" strokeLinecap="round" fill="none" />
+      {/* bell hat */}
+      <circle cx="40" cy="12" r="4" fill="#FFE66D" stroke="#C67A1F" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
 export const STORY_CHARACTERS: Record<StoryCharacterId, StoryCharacter> = {
+  hours: { name: 'The Hours', color: '#F9A03F', Portrait: HoursPortrait },
   zero: { name: 'Zero', color: '#4ECDC4', Portrait: ZeroPortrait },
   primo: { name: 'Primo', color: '#4ECDC4', Portrait: PrimoPortrait },
   devil: { name: 'The Number Devil', color: '#E84855', Portrait: DevilPortrait },
