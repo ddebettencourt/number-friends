@@ -16,6 +16,8 @@ import { rollGaussianDetailed } from '../../utils/diceLogic';
 import { getPath, calculateFinalPosition } from '../../utils/boardHelpers';
 import type { DiceType } from '../../types/game';
 import { getZoneIndex } from '../Board3D/zoneConfig';
+import { useStoryStore } from '../../stores/storyStore';
+import { HollowDice } from '../Story/HollowDice';
 
 type BoardMode = '2d' | '3d' | 'immersive';
 
@@ -230,8 +232,21 @@ export function GameContainer() {
     return <VictoryScreen winner={winner} onPlayAgain={resetGame} />;
   }
 
+  // Story prologue: the "false-normal" game replaces the dice controls with
+  // a blank die, and the rest of the turn UI never appears.
+  const hollowPrologue = useStoryStore(
+    (s) => s.active && s.chapter === 'prologue'
+  );
+  const prologuePhase = useStoryStore((s) => s.prologuePhase);
+
   // Helper: build the dice/controls JSX block (shared between normal and immersive layouts)
-  const diceControlsJSX = (
+  const diceControlsJSX = hollowPrologue ? (
+    prologuePhase === 'fake_game' ? (
+      <HollowDice
+        onLanded={() => useStoryStore.getState().setProloguePhase('crumbling')}
+      />
+    ) : null
+  ) : (
     <>
       {phase === 'rolling' && (
         <>

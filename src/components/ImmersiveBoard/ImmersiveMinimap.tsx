@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { Vector3Tuple } from 'three';
 import type { Player } from '../../types/game';
 import { ZONES } from '../Board3D/zoneConfig';
+import { useStoryStore } from '../../stores/storyStore';
 
 interface ImmersiveMinimapProps {
   positions: Vector3Tuple[];
@@ -68,6 +69,8 @@ export function ImmersiveMinimap({ positions, players, currentPlayerIndex }: Imm
 
   const activePlayer = players[currentPlayerIndex];
   const progress = activePlayer ? Math.min(100, Math.max(0, activePlayer.position)) : 0;
+  // Story prologue: the numbers are gone — even from the map
+  const hollow = useStoryStore((s) => s.active && s.chapter === 'prologue');
 
   return (
     <div
@@ -130,15 +133,15 @@ export function ImmersiveMinimap({ positions, players, currentPlayerIndex }: Imm
       {/* Progress to 100 */}
       <div className="px-2 pb-2">
         <div className="flex items-center justify-between text-[10px] text-white/50 mb-1" style={{ fontFamily: 'var(--font-body)', fontWeight: 600 }}>
-          <span>1</span>
-          <span className="text-white/80 font-bold">{progress}/100</span>
-          <span>100</span>
+          <span>{hollow ? '—' : 1}</span>
+          <span className="text-white/80 font-bold">{hollow ? '—/—' : `${progress}/100`}</span>
+          <span>{hollow ? '—' : 100}</span>
         </div>
         <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.12)' }}>
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{
-              width: `${progress}%`,
+              width: hollow ? '0%' : `${progress}%`,
               background: 'linear-gradient(90deg, var(--color-aurora-green), var(--color-aurora-cyan), var(--color-aurora-orange), var(--color-aurora-yellow))',
             }}
           />

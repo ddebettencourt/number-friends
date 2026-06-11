@@ -5,6 +5,7 @@ import type { Group, Mesh, Object3D } from 'three';
 import type { Vector3Tuple } from 'three';
 import { getZoneForSquare, getZoneIndex } from '../Board3D/zoneConfig';
 import { getImmersiveSquareColor, getSquareKind } from './immersivePathUtils';
+import { useStoryStore } from '../../stores/storyStore';
 
 interface ImmersiveTileProps {
   position: Vector3Tuple;
@@ -38,6 +39,14 @@ export function ImmersiveTile({
   const isSkyIsland = zoneIdx === 3;
   const kind = getSquareKind(squareNumber);
 
+  // Story prologue: the board renders numberless and gray ("hollow"), and
+  // crumbles away when the roll lands on nothing.
+  const hollow = useStoryStore((s) => s.active && s.chapter === 'prologue');
+  const crumbling = useStoryStore(
+    (s) => s.active && s.chapter === 'prologue' && s.prologuePhase !== 'fake_game'
+  );
+  const crumbleT = useRef(0);
+
   // Animated properties (relative to group, so base is 0)
   const targetY = useRef(0);
   // Entrance pop-in: tiles ease up from the ground + fade in as they appear
@@ -45,6 +54,19 @@ export function ImmersiveTile({
 
   useFrame((state, delta) => {
     if (!meshRef.current) return;
+
+    // Crumble: tiles drop away in a stagger, tumbling as they go
+    if (crumbling) {
+      crumbleT.current += delta;
+      const delay = (((squareNumber * 37) % 23) / 23) * 0.9;
+      const t = Math.max(0, crumbleT.current - delay);
+      if (groupRef.current && t > 0) {
+        groupRef.current.position.y = position[1] - t * t * 7;
+        groupRef.current.rotation.z = t * (squareNumber % 2 === 0 ? 0.7 : -0.6);
+        groupRef.current.rotation.x = t * 0.4;
+      }
+      return;
+    }
 
     // Entrance animation (runs once when the tile mounts into view):
     // tiles rise from below and scale up with a smooth easeOut.
@@ -102,6 +124,13 @@ export function ImmersiveTile({
   if (isHighlighted) {
     emissiveColor = '#7BC970';
     emissiveIntensity = 0.55;
+  }
+
+  // Hollow board: drained of color and identity
+  if (hollow) {
+    displayColor = '#73737f';
+    emissiveColor = '#23232c';
+    emissiveIntensity = 0.05;
   }
 
   const showEdges = isHighlighted || isInPath || hovered || !!kind || isStartOrEnd;
@@ -204,11 +233,11 @@ export function ImmersiveTile({
         material-toneMapped={false}
         renderOrder={3}
       >
-        {squareNumber}
+        {hollow ? '' : squareNumber}
       </Text>
 
       {/* START label */}
-      {squareNumber === 1 && (
+      {squareNumber === 1 && !hollow && (
         <Text
           ref={startRef}
           position={[0, 0.26, 0.6]}
@@ -226,7 +255,7 @@ export function ImmersiveTile({
       )}
 
       {/* End marker - floating gold beacon with sparkle */}
-      {squareNumber === 100 && (
+      {squareNumber === 100 && !hollow && (
         <Float speed={3} rotationIntensity={1} floatIntensity={1} floatingRange={[0, 0.4]}>
           <mesh position={[0, 1.6, 0]}>
             <octahedronGeometry args={[0.55]} />
@@ -246,7 +275,7 @@ export function ImmersiveTile({
         <mesh position={[0, 0.05, 0]} rotation={[-Math.PI / 2, 0, 0]}>
           <ringGeometry args={[1.05, 1.35, 6]} />
           <meshBasicMaterial
-            color={isHighlighted ? '#98ec65' : '#56d4c8'}
+            color={isHighlighted ? '#7BC970' : '#4ECDC4'}
             transparent
             opacity={0.55}
           />

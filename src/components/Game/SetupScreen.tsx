@@ -4,6 +4,7 @@ import { RulesModal, useRulesModal } from '../UI/RulesModal';
 import { TestMode } from './TestMode';
 import { soundEngine } from '../../utils/soundEngine';
 import { TutorialOverlay } from '../Tutorial/TutorialOverlay';
+import { useStoryStore } from '../../stores/storyStore';
 
 type GameMode = 'solo' | 'local';
 type AIDifficulty = 'easy' | 'medium' | 'hard';
@@ -163,6 +164,31 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3, duration: 0.5 }}
         >
+          <motion.button
+            className="btn btn-purple btn-lg w-full relative"
+            onClick={() => useStoryStore.getState().startStory()}
+            whileTap={{ scale: 0.98 }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+              <path d="M9 8h6M9 12h4" />
+            </svg>
+            Story Mode
+            <span
+              className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full text-[10px] font-bold"
+              style={{
+                background: 'var(--color-aurora-yellow)',
+                color: 'var(--color-text-on-light)',
+                fontFamily: 'var(--font-body)',
+                letterSpacing: '0.08em',
+                boxShadow: '0 2px 8px rgba(255, 230, 109, 0.5)',
+              }}
+            >
+              NEW
+            </span>
+          </motion.button>
+
           <motion.button
             className="btn btn-pink btn-lg w-full"
             onClick={() => setGameMode('solo')}
