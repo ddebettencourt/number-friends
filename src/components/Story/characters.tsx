@@ -6,7 +6,7 @@
 // Story-mode character registry: portraits share Primo's visual language —
 // simple geometric "number-beings" with expressive eyes, drawn as inline SVG.
 
-export type StoryCharacterId = 'zero' | 'primo' | 'devil' | 'hours' | 'narrator';
+export type StoryCharacterId = 'zero' | 'primo' | 'devil' | 'hours' | 'two' | 'narrator';
 
 interface StoryCharacter {
   name: string;
@@ -145,7 +145,37 @@ function HoursPortrait({ size = 72 }: { size?: number }) {
   );
 }
 
+function TwoPortrait({ size = 72 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none">
+      <defs>
+        <radialGradient id="two-shine" cx="0.35" cy="0.3" r="0.7">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.35)" />
+          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+        </radialGradient>
+      </defs>
+      {/* a binary pair — two orbs sharing one orbit */}
+      <ellipse cx="40" cy="44" rx="30" ry="12" stroke="#5BA3FC" strokeWidth="1.5" fill="none" opacity="0.5" />
+      <circle cx="28" cy="40" r="15" fill="#3185FC" />
+      <circle cx="28" cy="40" r="15" fill="url(#two-shine)" />
+      <circle cx="54" cy="50" r="9" fill="#5BA3FC" />
+      <circle cx="54" cy="50" r="9" fill="url(#two-shine)" />
+      {/* eyes on the lead orb */}
+      <ellipse cx="23" cy="37" rx="2.8" ry="3.4" fill="#fff" />
+      <ellipse cx="33" cy="37" rx="2.8" ry="3.4" fill="#fff" />
+      <circle cx="23.6" cy="36.4" r="1.3" fill="#0D2F5E" />
+      <circle cx="33.6" cy="36.4" r="1.3" fill="#0D2F5E" />
+      {/* determined little mouth */}
+      <path d="M24 45 Q28 47.5 32 45" stroke="#0D2F5E" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      {/* the little one winks */}
+      <path d="M51 48 Q53 49.5 56 48" stroke="#0D2F5E" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+      <circle cx="52" cy="46" r="1" fill="#0D2F5E" />
+    </svg>
+  );
+}
+
 export const STORY_CHARACTERS: Record<StoryCharacterId, StoryCharacter> = {
+  two: { name: 'Two', color: '#3185FC', Portrait: TwoPortrait },
   hours: { name: 'The Hours', color: '#F9A03F', Portrait: HoursPortrait },
   zero: { name: 'Zero', color: '#4ECDC4', Portrait: ZeroPortrait },
   primo: { name: 'Primo', color: '#4ECDC4', Portrait: PrimoPortrait },

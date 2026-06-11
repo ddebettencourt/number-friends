@@ -6,6 +6,7 @@ import { GameContainer } from '../Game/GameContainer';
 import { PrologueDirector } from './PrologueDirector';
 import { NullhavenScene } from './NullhavenScene';
 import { ClockworkScene } from './ClockworkScene';
+import { DeltaScene } from './DeltaScene';
 import { STORY_CHARACTERS } from './characters';
 
 // ============================================================
@@ -66,6 +67,10 @@ export function StoryMode() {
 
   if (chapter === 'clockwork') {
     return <ClockworkScene />;
+  }
+
+  if (chapter === 'delta') {
+    return <DeltaScene />;
   }
 
   return <ComingSoon />;
