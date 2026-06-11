@@ -14,6 +14,11 @@ describe('clockAnswer (mod-12 with 12 instead of 0)', () => {
     expect(clockAnswer(7, 5)).toBe(12);
     expect(clockAnswer(12, 12)).toBe(12);
   });
+  it('winds backward for negative hours', () => {
+    expect(clockAnswer(2, -5)).toBe(9);
+    expect(clockAnswer(1, -1)).toBe(12);
+    expect(clockAnswer(3, -15)).toBe(12);
+  });
 });
 
 describe('caesar cipher', () => {

@@ -29,9 +29,14 @@ export interface MovementRefs {
   input: React.MutableRefObject<{ x: number; y: number }>;
   /** tap-to-move target (cleared by stick/key input or on arrival) */
   target: React.MutableRefObject<THREE.Vector3 | null>;
+  /** camera orbit (yaw around the pawn; pitch clamped) — driven by drag */
+  orbit: React.MutableRefObject<{ yaw: number; pitch: number }>;
+  /** a hop the scene wants executed now (Space / HOP button) */
+  hopRequest: React.MutableRefObject<HopResult | null>;
   /** scene-facing mutators — use these instead of writing .current directly */
   setTarget: (v: THREE.Vector3) => void;
   teleport: (x: number, y: number, z: number) => void;
+  requestHop: (hop: HopResult) => void;
 }
 
 export function useMovementRefs(start: [number, number, number]): MovementRefs {
@@ -43,14 +48,17 @@ export function useMovementRefs(start: [number, number, number]): MovementRefs {
   const hopping = useRef(false);
   const input = useRef({ x: 0, y: 0 });
   const target = useRef<THREE.Vector3 | null>(null);
+  const orbit = useRef({ yaw: 0, pitch: 0.62 }); // south of the pawn, looking north
+  const hopRequest = useRef<HopResult | null>(null);
   return useMemo(
     () => ({
-      pos, facing, moving, hopping, input, target,
+      pos, facing, moving, hopping, input, target, orbit, hopRequest,
       setTarget: (v: THREE.Vector3) => { target.current = v.clone(); },
       teleport: (x: number, y: number, z: number) => {
         pos.current.set(x, y, z);
         target.current = null;
       },
+      requestHop: (hop: HopResult) => { hopRequest.current = hop; },
     }),
     []
   );
@@ -99,6 +107,16 @@ export function PlayerMover({ refs, speed = 4.4, clamp, frozen = false }: Player
 
   useFrame((_, delta) => {
     const { pos, facing, moving, hopping, input, target } = refs;
+
+    // --- a deliberate hop was requested (Space / HOP button / stone tap) ---
+    if (!hop.current && refs.hopRequest.current && !frozen) {
+      const req = refs.hopRequest.current;
+      refs.hopRequest.current = null;
+      hop.current = { from: pos.current.clone(), to: req.to.clone(), t: 0, commit: req.commit };
+      target.current = null;
+      const d = req.to.clone().sub(pos.current);
+      if (d.lengthSq() > 0.01) facing.current = Math.atan2(d.x, d.z);
+    }
 
     // --- hop in flight: arc and land ---
     if (hop.current) {
@@ -306,23 +324,92 @@ export function VirtualJoystick({ refs, disabled = false }: { refs: MovementRefs
   );
 }
 
-/** Smooth third-person follow camera for any movement refs. */
-export function StoryFollowCamera({ refs, height = 5.2, distance = 6.8, lookAhead = 1 }: {
+/**
+ * Orbit-follow camera: trails the pawn, and the player can drag anywhere
+ * (mouse or touch, outside the joystick) to look around. A short drag is
+ * still treated as a tap by scenes via `e.delta` checks.
+ */
+export function StoryFollowCamera({ refs, distance = 8.4 }: {
   refs: MovementRefs;
-  height?: number;
   distance?: number;
-  lookAhead?: number;
 }) {
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
   const look = useRef(new THREE.Vector3());
+
+  useEffect(() => {
+    const el = gl.domElement;
+    let dragging = false;
+    let lastX = 0;
+    let lastY = 0;
+    const down = (e: PointerEvent) => {
+      // primary button / first touch only; the joystick captures its own pointer
+      if (e.button !== 0) return;
+      dragging = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
+    };
+    const move = (e: PointerEvent) => {
+      if (!dragging) return;
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+      lastX = e.clientX;
+      lastY = e.clientY;
+      const o = refs.orbit.current;
+      o.yaw -= dx * 0.0055;
+      o.pitch = Math.min(1.15, Math.max(0.18, o.pitch + dy * 0.004));
+    };
+    const up = () => { dragging = false; };
+    el.addEventListener('pointerdown', down);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
+    return () => {
+      el.removeEventListener('pointerdown', down);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
+    };
+  }, [gl, refs]);
+
   useFrame((_, delta) => {
     const target = refs.pos.current;
-    const desired = new THREE.Vector3(target.x * 0.6, target.y + height, target.z + distance);
-    camera.position.lerp(desired, Math.min(1, delta * 2.2));
-    look.current.lerp(new THREE.Vector3(target.x, target.y + 0.6, target.z - lookAhead), Math.min(1, delta * 2.6));
+    const o = refs.orbit.current;
+    const horiz = Math.cos(o.pitch) * distance;
+    const desired = new THREE.Vector3(
+      target.x + Math.sin(o.yaw) * horiz,
+      target.y + Math.sin(o.pitch) * distance,
+      target.z + Math.cos(o.yaw) * horiz
+    );
+    camera.position.lerp(desired, Math.min(1, delta * 3.2));
+    look.current.lerp(new THREE.Vector3(target.x, target.y + 0.7, target.z), Math.min(1, delta * 3.6));
     camera.lookAt(look.current);
   });
   return null;
+}
+
+/** Round HOP action button for touch devices (shown when a hop is available). */
+export function HopButton({ visible, onHop }: { visible: boolean; onHop: () => void }) {
+  if (!visible) return null;
+  return (
+    <button
+      className="absolute bottom-8 right-6 rounded-full font-display text-lg select-none"
+      style={{
+        width: 86,
+        height: 86,
+        zIndex: 45,
+        background: 'linear-gradient(135deg, #72DAD3 0%, #4ECDC4 100%)',
+        boxShadow: '0 5px 0 #2E9E96, 0 8px 24px rgba(78, 205, 196, 0.45)',
+        color: '#11332f',
+        letterSpacing: '0.06em',
+        border: 'none',
+        touchAction: 'manipulation',
+        paddingBottom: 'env(safe-area-inset-bottom)',
+      }}
+      onClick={onHop}
+    >
+      HOP
+    </button>
+  );
 }
 
 /** The player's pawn — the one that fell off the board. Shared by all chapters. */

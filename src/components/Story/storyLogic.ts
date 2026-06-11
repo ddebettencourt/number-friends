@@ -1,9 +1,10 @@
 // Pure story-mode puzzle logic — extracted so it can be unit-tested in
 // milliseconds instead of driving the 3D scenes end-to-end.
 
-/** Clock arithmetic on a 12-house circle: where does start + add land? */
+/** Clock arithmetic on a 12-house circle: where does start + add land?
+ *  Handles negative `add` (winding the clock backward). */
 export function clockAnswer(start: number, add: number): number {
-  const a = (start + add) % 12;
+  const a = (((start + add) % 12) + 12) % 12;
   return a === 0 ? 12 : a;
 }
 

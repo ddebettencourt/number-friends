@@ -12,6 +12,7 @@ import {
   type ClampResult,
 } from './movement';
 import { clockAnswer, caesarEncode, caesarDecode, houseAt } from './storyLogic';
+import { useAmbient } from './AmbientBubble';
 
 // ============================================================
 //  Chapter 2 — The Clockwork Commons.
@@ -50,6 +51,7 @@ const ROUNDS = [
   { start: 9, add: 6 },   // → 3
   { start: 11, add: 5 },  // → 4
   { start: 8, add: 12 },  // → 8 (adding a full turn changes nothing)
+  { start: 2, add: -5 },  // → 9 (winding backward wraps the other way)
 ];
 const answerOf = (r: { start: number; add: number }) => clockAnswer(r.start, r.add);
 
@@ -59,8 +61,15 @@ const SHIFT = 3;
 const CIPHERTEXT = caesarEncode(PLAINTEXT, SHIFT);
 const decode = caesarDecode;
 
-// --- An hour-house assembled from kit walls -----------------------------------------
-const WALL = 2.3; // kit wall panels are ~1 unit; we scale by this
+// --- An hour-house, built from clean primitives ---------------------------------
+// (The kit wall panels have corner origins that left visible seams; these are
+//  proper closed bodies with overhanging roofs and warm windows.)
+const PLASTERS = ['#e9ddc6', '#dfd0b8', '#e4d5c8', '#d8cbc0'];
+const ROOFS = ['#7a5a6e', '#5d5a7e', '#6e5a5a', '#5a6e6a'];
+const TIMBER = '#5b4632';
+const BODY_W = 2.7;
+const BODY_H = 2.15;
+const BODY_D = 2.3;
 
 function HourHouse({ hour, flash }: { hour: number; flash: 'gold' | 'red' | null }) {
   const pos = hourPos(hour, HOUSE_R);
@@ -73,32 +82,88 @@ function HourHouse({ hour, flash }: { hour: number; flash: 'gold' | 'red' | null
     m.opacity = base > 0 ? base + Math.sin(state.clock.elapsedTime * 8) * 0.18 : 0;
     m.color.set(flash === 'red' ? '#E84855' : '#FFE66D');
   });
-  const h = WALL / 2;
+  const plaster = PLASTERS[hour % PLASTERS.length];
+  const roof = ROOFS[hour % ROOFS.length];
+  const fz = BODY_D / 2; // front face z
   return (
     <group position={[pos.x, GROUND_Y, pos.z]} rotation={[0, faceCenter, 0]}>
-      {/* four walls — door faces the plaza */}
-      <Model url={M('wall-wood-door')} position={[0, 0, h]} scale={WALL} />
-      <Model url={M('wall-wood-window-shutters')} position={[-h, 0, 0]} rotation={[0, Math.PI / 2, 0]} scale={WALL} />
-      <Model url={M('wall-wood-window-shutters')} position={[h, 0, 0]} rotation={[0, -Math.PI / 2, 0]} scale={WALL} />
-      <Model url={M('wall-wood')} position={[0, 0, -h]} rotation={[0, Math.PI, 0]} scale={WALL} />
-      {/* pointed roof */}
-      <Model url={M('roof-point')} position={[0, WALL, 0]} scale={WALL} />
-      {/* hour number above the door */}
-      <Text
-        position={[0, WALL * 1.42, h + 0.25]}
-        fontSize={0.78}
-        color="#FFE66D"
-        anchorX="center"
-        anchorY="middle"
-        outlineWidth={0.05}
-        outlineColor="#1a1208"
-      >
-        {hour}
-      </Text>
+      {/* body */}
+      <mesh position={[0, BODY_H / 2, 0]} castShadow receiveShadow>
+        <boxGeometry args={[BODY_W, BODY_H, BODY_D]} />
+        <meshStandardMaterial color={plaster} roughness={0.9} />
+      </mesh>
+      {/* timber corner posts + lintel beam */}
+      {[-1, 1].map((sx) => (
+        <mesh key={sx} position={[sx * (BODY_W / 2 - 0.07), BODY_H / 2, fz - 0.02]}>
+          <boxGeometry args={[0.14, BODY_H, 0.1]} />
+          <meshStandardMaterial color={TIMBER} roughness={0.9} />
+        </mesh>
+      ))}
+      <mesh position={[0, BODY_H - 0.08, fz - 0.02]}>
+        <boxGeometry args={[BODY_W, 0.14, 0.1]} />
+        <meshStandardMaterial color={TIMBER} roughness={0.9} />
+      </mesh>
+      {/* overhanging pyramid roof (4-sided cone rotated to align) */}
+      <mesh position={[0, BODY_H + 0.62, 0]} rotation={[0, Math.PI / 4, 0]} castShadow>
+        <coneGeometry args={[Math.SQRT1_2 * (BODY_W + 0.7), 1.45, 4]} />
+        <meshStandardMaterial color={roof} roughness={0.8} flatShading />
+      </mesh>
+      {/* roof brim shadow line */}
+      <mesh position={[0, BODY_H + 0.02, 0]} rotation={[0, Math.PI / 4, 0]}>
+        <coneGeometry args={[Math.SQRT1_2 * (BODY_W + 0.74), 0.12, 4]} />
+        <meshStandardMaterial color="#2e2638" roughness={0.95} flatShading />
+      </mesh>
+      {/* door: arched dark wood, slightly proud of the face */}
+      <mesh position={[0, 0.62, fz + 0.03]}>
+        <boxGeometry args={[0.66, 1.24, 0.1]} />
+        <meshStandardMaterial color="#4a3826" roughness={0.85} />
+      </mesh>
+      <mesh position={[0, 1.24, fz + 0.03]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.33, 0.33, 0.1, 16, 1, false, 0, Math.PI]} />
+        <meshStandardMaterial color="#4a3826" roughness={0.85} />
+      </mesh>
+      <mesh position={[0.2, 0.62, fz + 0.09]}>
+        <sphereGeometry args={[0.045, 8, 8]} />
+        <meshStandardMaterial color="#d4aa50" metalness={0.8} roughness={0.3} />
+      </mesh>
+      {/* doorstep */}
+      <mesh position={[0, 0.04, fz + 0.32]}>
+        <boxGeometry args={[0.9, 0.1, 0.55]} />
+        <meshStandardMaterial color="#8a8694" roughness={0.95} />
+      </mesh>
+      {/* warm windows flanking the door + one in the gable */}
+      {[-0.85, 0.85].map((wx) => (
+        <mesh key={wx} position={[wx, 1.18, fz + 0.015]}>
+          <planeGeometry args={[0.42, 0.5]} />
+          <meshStandardMaterial color="#ffd27a" emissive="#ffb35c" emissiveIntensity={0.9} toneMapped={false} />
+        </mesh>
+      ))}
+      {/* hour medallion above the door */}
+      <group position={[0, BODY_H - 0.42, fz + 0.06]}>
+        <mesh rotation={[Math.PI / 2, 0, 0]}>
+          <cylinderGeometry args={[0.4, 0.4, 0.07, 20]} />
+          <meshStandardMaterial color="#2d2d5a" roughness={0.4} metalness={0.4} />
+        </mesh>
+        <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 0, 0.01]}>
+          <torusGeometry args={[0.4, 0.045, 10, 24]} />
+          <meshStandardMaterial color="#d4aa50" metalness={0.8} roughness={0.25} />
+        </mesh>
+        <Text
+          position={[0, 0, 0.06]}
+          fontSize={0.46}
+          color="#FFE66D"
+          anchorX="center"
+          anchorY="middle"
+          outlineWidth={0.03}
+          outlineColor="#1a1208"
+        >
+          {hour}
+        </Text>
+      </group>
       {/* warm doorlight */}
-      <pointLight position={[0, 1.2, h + 0.9]} color="#ffb35c" intensity={0.85} distance={6} decay={2} />
+      <pointLight position={[0, 1.2, fz + 0.9]} color="#ffb35c" intensity={0.85} distance={6} decay={2} />
       {/* event glow ring at the doorstep */}
-      <mesh ref={glow} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, h + 1.6]}>
+      <mesh ref={glow} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.05, fz + 1.5]}>
         <ringGeometry args={[1.05, 1.45, 28]} />
         <meshBasicMaterial color="#FFE66D" transparent opacity={0} />
       </mesh>
@@ -273,24 +338,18 @@ function GateWatcher({ refs, active, onNear }: {
 
 // --- Dialogue -----------------------------------------------------------------------------------
 const INTRO: DialogueLine[] = [
-  { speaker: 'narrator', text: 'Past the marsh, the land curls into a town — and the town curls into itself. Twelve houses on one round street. You have the feeling that if you walked far enough, you would meet your own footprints.' },
-  { speaker: 'hours', text: 'A visitor! And Zero — Zero, it’s been an age! We are the Hours. Twelve of us, twelve houses, one circle.' },
-  { speaker: 'hours', text: 'We count to twelve and then we begin again. The Devil called it a defect. “You never get anywhere,” he said. Then he locked our gate — so now nobody does.' },
-  { speaker: 'zero', text: 'Counting in circles is still counting, friends. Show this one how the town works. We need that gate.' },
-  { speaker: 'hours', text: 'Then play the oldest game in the Commons! The plaza clock will speak. Walk to the house where the time truly lands — and remember: past twelve, we begin again.' },
+  { speaker: 'hours', text: 'A visitor! And Zero! We are the Hours — twelve of us, twelve houses, one circle. We count to twelve and begin again. The Devil called that a defect and locked our gate.' },
+  { speaker: 'hours', text: 'Play the oldest game in the Commons and the town will trust you: the plaza clock speaks, and you walk to the house where the time truly lands. Past twelve? We begin again.' },
 ];
 
 const CIPHER_INTRO: DialogueLine[] = [
-  { speaker: 'hours', text: 'You hear it too, yes? The town believes you. Now — the gate. He sealed it with turned letters.' },
-  { speaker: 'hours', text: 'Every letter walked three houses clockwise from where it lived. Letters keep a circle just like ours, you know. Twenty-six houses, A through Z.' },
-  { speaker: 'zero', text: 'A circle is a circle. Turn it back.' },
+  { speaker: 'hours', text: 'The town believes you! Now the gate — he sealed it with turned letters. Every letter walked three houses along its own circle of twenty-six. Turn them back.' },
 ];
 
 const OUTRO: DialogueLine[] = [
-  { speaker: 'hours', text: 'The gate turns! Oh, it’s been years. YEARS!' },
-  { speaker: 'hours', text: 'Take this with you, traveler: remainders are not leftovers. A remainder is where you land on the circle.' },
-  { speaker: 'zero', text: 'Your board’s bounce-back at the hundredth square… that’s a circle too, you know. You’ve been playing with remainders all along.' },
-  { speaker: 'narrator', text: 'The Hours joined your party. — Next: The Doubling Delta.' },
+  { speaker: 'hours', text: 'The gate turns! Remember this, traveler: a remainder isn\u2019t a leftover. It\u2019s where you land on the circle.' },
+  { speaker: 'zero', text: 'Your board\u2019s bounce-back at the hundredth square is a circle too, you know. You\u2019ve been playing with remainders all along.' },
+  { speaker: 'narrator', text: 'The Hours joined your party. \u2014 Next: The Doubling Delta.' },
 ];
 
 // --- Main scene -------------------------------------------------------------------------------------
@@ -300,12 +359,12 @@ export function ClockworkScene() {
   const [phase, setPhase] = useState<Phase>('intro');
   const [round, setRound] = useState(0);
   const [flash, setFlash] = useState<{ hour: number; kind: 'gold' | 'red' } | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
   const [nearGate, setNearGate] = useState(false);
   const [shift, setShift] = useState(0);
   const [cipherTries, setCipherTries] = useState(0);
   const [gateOpen, setGateOpen] = useState(false);
   const completeChapter = useStoryStore((s) => s.completeChapter);
+  const ambient = useAmbient();
 
   const refs = useMovementRefs([0, 0.3, 6]);
   useKeyboardMovement(refs, phase === 'quest' || phase === 'cipher');
@@ -325,9 +384,15 @@ export function ClockworkScene() {
   const r = ROUNDS[round];
   const questActive = phase === 'quest' && !!r;
 
+  const PRAISE = [
+    'There! The town hums approval.',
+    'Again! You hear the gears agreeing.',
+    'A full turn, and you didn\u2019t flinch. The Devil hated that one.',
+    'Backward too! Time has no secrets from you now.',
+  ];
   const onCorrect = (h: number) => {
     setFlash({ hour: h, kind: 'gold' });
-    setToast(null);
+    ambient.say('hours', PRAISE[Math.min(round, PRAISE.length - 1)]);
     setTimeout(() => setFlash(null), 1400);
     if (round + 1 < ROUNDS.length) {
       setTimeout(() => setRound(round + 1), 1200);
@@ -339,7 +404,9 @@ export function ClockworkScene() {
   const onWrong = (h: number) => {
     setFlash({ hour: h, kind: 'red' });
     setTimeout(() => setFlash(null), 1100);
-    setToast('The Hours hum politely: “past twelve, we begin again — count round the circle.”');
+    ambient.say('hours', r && r.add < 0
+      ? '“Hours ago” means winding backward — and below one, we wrap round to twelve.'
+      : 'Past twelve, we begin again — count round the circle.');
   };
 
   const tryUnlock = () => {
@@ -379,6 +446,7 @@ export function ClockworkScene() {
             visible={false}
             onClick={(e) => {
               e.stopPropagation();
+              if (e.delta > 6) return; // camera drag, not a tap
               if (phase === 'quest' || phase === 'cipher') refs.setTarget(e.point);
             }}
           >
@@ -392,9 +460,11 @@ export function ClockworkScene() {
           <PlayerMover refs={refs} clamp={clamp} frozen={phase !== 'quest' && phase !== 'cipher'} />
           <StoryPawn refs={refs} />
           <ZeroFollower refs={refs} />
-          <StoryFollowCamera refs={refs} height={5.6} distance={7.4} />
+          <StoryFollowCamera refs={refs} distance={8.8} />
         </Suspense>
       </Canvas>
+
+      {ambient.node}
 
       {/* Quest HUD */}
       {questActive && (
@@ -402,21 +472,13 @@ export function ClockworkScene() {
           <div className="hud-panel px-5 py-3 max-w-xs">
             <div className="label-caps mb-1">The Hours ask · {round + 1} of {ROUNDS.length}</div>
             <div className="text-base" style={{ fontFamily: 'var(--font-body)', color: 'var(--color-text-primary)' }}>
-              “The plaza clock reads <b style={{ color: '#FFE66D' }}>{r.start}</b>. Let <b style={{ color: '#FFE66D' }}>{r.add} hours</b> pass…
-              stand at the door of the true hour.”
+              {r.add >= 0 ? (
+                <>“The plaza clock reads <b style={{ color: '#FFE66D' }}>{r.start}</b>. Let <b style={{ color: '#FFE66D' }}>{r.add} hours</b> pass… stand at the door of the true hour.”</>
+              ) : (
+                <>“The plaza clock reads <b style={{ color: '#FFE66D' }}>{r.start}</b>. Now — where did it point <b style={{ color: '#FFE66D' }}>{-r.add} hours ago</b>? Stand at that door.”</>
+              )}
             </div>
           </div>
-          {toast && (
-            <motion.div
-              key={toast}
-              className="hud-panel px-4 py-2 text-sm max-w-xs"
-              style={{ fontFamily: 'var(--font-body)', color: '#FFE66D' }}
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              {toast}
-            </motion.div>
-          )}
           <div className="text-[11px]" style={{ fontFamily: 'var(--font-body)', color: 'rgba(255,255,255,0.35)' }}>
             {touch ? 'joystick to walk · stand at a door to answer' : 'WASD to walk · stand at a door to answer'}
           </div>
