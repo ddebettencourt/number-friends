@@ -7,6 +7,7 @@ import { PrologueDirector } from './PrologueDirector';
 import { NullhavenScene } from './NullhavenScene';
 import { ClockworkScene } from './ClockworkScene';
 import { DeltaScene } from './DeltaScene';
+import { HailstoneScene } from './HailstoneScene';
 import { STORY_CHARACTERS } from './characters';
 
 // ============================================================
@@ -27,7 +28,7 @@ function ComingSoon() {
       >
         <div className="flex justify-center mb-3"><Devil size={84} /></div>
         <div className="label-caps mb-2">The story continues…</div>
-        <h2 className="heading-2 text-gradient-cyan mb-3">The Doubling Delta</h2>
+        <h2 className="heading-2 text-gradient-cyan mb-3">The Infinite Inn</h2>
         <p className="font-body text-[var(--color-text-secondary)] mb-6">
           The next chapter is still being written. The Devil, for one, is in no hurry
           for you to arrive.
@@ -71,6 +72,10 @@ export function StoryMode() {
 
   if (chapter === 'delta') {
     return <DeltaScene />;
+  }
+
+  if (chapter === 'hailstone') {
+    return <HailstoneScene />;
   }
 
   return <ComingSoon />;

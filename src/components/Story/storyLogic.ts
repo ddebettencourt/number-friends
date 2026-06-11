@@ -42,6 +42,22 @@ export function hopBalance(
   }
 }
 
+/** The Collatz step: odd → 3n+1, even → n/2. */
+export function collatzStep(n: number): number {
+  return n % 2 === 0 ? n / 2 : 3 * n + 1;
+}
+
+/** Full hailstone sequence from n down to 1 (inclusive). */
+export function collatzSequence(n: number): number[] {
+  const out = [n];
+  let x = n;
+  while (x !== 1 && out.length < 500) {
+    x = collatzStep(x);
+    out.push(x);
+  }
+  return out;
+}
+
 /** Which hour-house wedge a plaza position is in (or null near the center). */
 export function houseAt(x: number, z: number, minRadius = 8.2): number | null {
   if (Math.hypot(x, z) <= minRadius) return null;

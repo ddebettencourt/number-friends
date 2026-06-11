@@ -1,5 +1,21 @@
 import { describe, it, expect } from 'vitest';
-import { clockAnswer, caesarEncode, caesarDecode, hopBalance, houseAt } from '../storyLogic';
+import { clockAnswer, caesarEncode, caesarDecode, hopBalance, houseAt, collatzStep, collatzSequence } from '../storyLogic';
+
+describe('collatz (hailstone rides)', () => {
+  it('steps odd up and even down', () => {
+    expect(collatzStep(27)).toBe(82);
+    expect(collatzStep(82)).toBe(41);
+  });
+  it('6 rides home in 8 steps', () => {
+    expect(collatzSequence(6)).toEqual([6, 3, 10, 5, 16, 8, 4, 2, 1]);
+  });
+  it('27 is the legend: 111 steps, peak 9232', () => {
+    const seq = collatzSequence(27);
+    expect(seq.length).toBe(112); // 111 steps = 112 numbers
+    expect(Math.max(...seq)).toBe(9232);
+    expect(seq[seq.length - 1]).toBe(1);
+  });
+});
 
 describe('clockAnswer (mod-12 with 12 instead of 0)', () => {
   it('wraps past twelve', () => {

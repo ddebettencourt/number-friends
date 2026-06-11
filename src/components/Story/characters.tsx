@@ -6,7 +6,7 @@
 // Story-mode character registry: portraits share Primo's visual language —
 // simple geometric "number-beings" with expressive eyes, drawn as inline SVG.
 
-export type StoryCharacterId = 'zero' | 'primo' | 'devil' | 'hours' | 'two' | 'narrator';
+export type StoryCharacterId = 'zero' | 'primo' | 'devil' | 'hours' | 'two' | 'twentyseven' | 'narrator';
 
 interface StoryCharacter {
   name: string;
@@ -174,7 +174,37 @@ function TwoPortrait({ size = 72 }: { size?: number }) {
   );
 }
 
+function TwentySevenPortrait({ size = 72 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 80 80" fill="none">
+      <defs>
+        <radialGradient id="ts-shine" cx="0.35" cy="0.3" r="0.7">
+          <stop offset="0%" stopColor="rgba(255,255,255,0.35)" />
+          <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+        </radialGradient>
+      </defs>
+      {/* speed trail */}
+      <path d="M10 50 Q20 46 28 48 M6 40 Q18 38 26 40 M12 30 Q21 30 28 33"
+        stroke="#F9A03F" strokeWidth="3" strokeLinecap="round" opacity="0.5" fill="none" />
+      {/* comet head */}
+      <circle cx="46" cy="40" r="20" fill="#F9A03F" />
+      <circle cx="46" cy="40" r="20" fill="url(#ts-shine)" />
+      {/* aviator goggles */}
+      <rect x="32" y="31" width="28" height="3.4" rx="1.7" fill="#5b4632" />
+      <circle cx="40" cy="37" r="6.4" fill="#2d2d5a" stroke="#5b4632" strokeWidth="2.4" />
+      <circle cx="54" cy="37" r="6.4" fill="#2d2d5a" stroke="#5b4632" strokeWidth="2.4" />
+      {/* gleaming eyes behind the lenses */}
+      <circle cx="41.5" cy="36" r="2" fill="#FFE66D" />
+      <circle cx="55.5" cy="36" r="2" fill="#FFE66D" />
+      {/* grin */}
+      <path d="M38 50 Q47 56 56 49" stroke="#5b2a10" strokeWidth="2.6" strokeLinecap="round" fill="none" />
+      <path d="M50 52.5 L52.5 49.8" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export const STORY_CHARACTERS: Record<StoryCharacterId, StoryCharacter> = {
+  twentyseven: { name: 'Twenty-Seven', color: '#F9A03F', Portrait: TwentySevenPortrait },
   two: { name: 'Two', color: '#3185FC', Portrait: TwoPortrait },
   hours: { name: 'The Hours', color: '#F9A03F', Portrait: HoursPortrait },
   zero: { name: 'Zero', color: '#4ECDC4', Portrait: ZeroPortrait },
