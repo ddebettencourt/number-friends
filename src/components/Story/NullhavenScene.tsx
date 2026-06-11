@@ -60,12 +60,12 @@ function spotPosition(spot: PawnSpot): THREE.Vector3 {
 }
 
 // --- Your pawn — the one that fell off the board ----------------------------
-function StoryPawn({ posRef, movingRef }: {
+function StoryPawn({ posRef, movingRef, facingRef }: {
   posRef: React.MutableRefObject<THREE.Vector3>;
   movingRef: React.MutableRefObject<boolean>;
+  facingRef: React.MutableRefObject<number>;
 }) {
   const group = useRef<THREE.Group>(null);
-  const facing = useRef(0);
   useFrame((state) => {
     if (!group.current) return;
     group.current.position.copy(posRef.current);
@@ -78,10 +78,8 @@ function StoryPawn({ posRef, movingRef }: {
       group.current.position.y += Math.sin(t * 2) * 0.03;
       group.current.rotation.z = 0;
     }
-    group.current.rotation.y = facing.current;
+    group.current.rotation.y = facingRef.current;
   });
-  // expose facing through the ref object (mutated by the controller)
-  (posRef as unknown as { facing?: React.MutableRefObject<number> }).facing = facing;
   return (
     <group ref={group}>
       {/* body — same silhouette as the board pawns */}
@@ -341,6 +339,7 @@ export function NullhavenScene() {
   // Pawn position is animated imperatively for smoothness
   const pawnPos = useRef(new THREE.Vector3(0, 0.32, START_Z + 1.6));
   const moving = useRef(false);
+  const facingRef = useRef(0);
   const targetRef = useRef(spotPosition(spot));
 
   // Per-frame mover lives in a child of <Canvas>; declared here as a component
@@ -353,8 +352,7 @@ export function NullhavenScene() {
         const step = Math.min(dist, delta * 4.2);
         const dir = target.clone().sub(pawnPos.current).normalize();
         pawnPos.current.add(dir.multiplyScalar(step));
-        const f = (pawnPos as unknown as { facing?: React.MutableRefObject<number> }).facing;
-        if (f) f.current = Math.atan2(dir.x, dir.z);
+        facingRef.current = Math.atan2(dir.x, dir.z);
       }
     });
     return null;
@@ -468,7 +466,7 @@ export function NullhavenScene() {
           )}
 
           <PawnMover />
-          <StoryPawn posRef={pawnPos} movingRef={moving} />
+          <StoryPawn posRef={pawnPos} movingRef={moving} facingRef={facingRef} />
           <Zero3D position={[0, 1.15, BANK_Z - 2.6]} />
           <FollowCamera posRef={pawnPos} />
         </Suspense>
