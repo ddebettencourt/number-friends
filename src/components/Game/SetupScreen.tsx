@@ -5,6 +5,7 @@ import { TestMode } from './TestMode';
 import { soundEngine } from '../../utils/soundEngine';
 import { TutorialOverlay } from '../Tutorial/TutorialOverlay';
 import { useStoryStore, nextChapter } from '../../stores/storyStore';
+import { ChapterSelect } from '../Story/ChapterSelect';
 
 type GameMode = 'solo' | 'local';
 type AIDifficulty = 'easy' | 'medium' | 'hard';
@@ -83,6 +84,7 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
   const [playerName, setPlayerName] = useState('Explorer');
   const [showTestMode, setShowTestMode] = useState(false);
   const [showTutorial, setShowTutorial] = useState(false);
+  const [showChapters, setShowChapters] = useState(false);
   const tutorialComplete = localStorage.getItem('numberFriends_tutorialComplete') === 'true';
 
   // Play main theme on the title screen
@@ -176,7 +178,7 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
         >
           <motion.button
             className="btn btn-purple btn-lg w-full relative"
-            onClick={() => useStoryStore.getState().startStory()}
+            onClick={() => (storyStarted ? setShowChapters(true) : useStoryStore.getState().startStory())}
             whileTap={{ scale: 0.98 }}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -204,6 +206,15 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
             >
               NEW
             </span>
+          </motion.button>
+
+          <motion.button
+            className="w-full -mt-2 py-1.5 text-xs flex items-center justify-center gap-1.5 cursor-pointer bg-transparent border-none"
+            style={{ fontFamily: 'var(--font-body)', fontWeight: 600, color: 'rgba(255,255,255,0.4)' }}
+            onClick={() => setShowChapters(true)}
+            whileHover={{ color: 'rgba(255,255,255,0.7)' }}
+          >
+            chapter select
           </motion.button>
 
           <motion.button
@@ -264,6 +275,7 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
           <div className="w-12 h-px bg-current" />
         </motion.div>
 
+        {showChapters && <ChapterSelect onClose={() => setShowChapters(false)} />}
         <AnimatePresence>
           {showTutorial && (
             <TutorialOverlay
