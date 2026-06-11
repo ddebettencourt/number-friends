@@ -7,6 +7,7 @@ import { useStoryStore } from '../../stores/storyStore';
 import { DialogueScene, type DialogueLine } from './DialogueScene';
 import { useAmbient } from './AmbientBubble';
 import { ChapterTitle } from './ChapterTitle';
+import { ChapterComplete } from './ChapterComplete';
 import { collatzSequence, collatzStep } from './storyLogic';
 import { LOW_PERF } from '../../utils/perf';
 import {
@@ -16,7 +17,7 @@ import {
 } from './movement';
 
 // ============================================================
-//  Chapter 5 — The Hailstone Caverns.
+//  Chapter 4 — The Hailstone Caverns.
 //  Pick a number, board the cart. Odd numbers climb (3n+1),
 //  even numbers plunge (n/2). Everything comes home to 1 —
 //  probably. Nobody has ever proven it.
@@ -247,7 +248,7 @@ const OUTRO: DialogueLine[] = [
 ];
 
 // --- Main scene ---------------------------------------------------------------------------------
-type Phase = 'title' | 'intro' | 'platform' | 'riding' | 'outro';
+type Phase = 'title' | 'intro' | 'platform' | 'riding' | 'outro' | 'complete';
 
 interface Prompt {
   n: number;
@@ -537,9 +538,12 @@ export function HailstoneScene() {
           lines={OUTRO}
           onComplete={() => {
             completeChapter('hailstone', { companion: 'twentyseven' });
-            useStoryStore.getState().goToChapter('inn');
+            setPhase('complete');
           }}
         />
+      )}
+      {phase === 'complete' && (
+        <ChapterComplete chapterTitle="The Hailstone Caverns" companion="twentyseven" onContinue={() => useStoryStore.getState().goToChapter('inn')} />
       )}
     </div>
   );

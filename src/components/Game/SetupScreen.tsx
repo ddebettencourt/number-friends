@@ -4,7 +4,7 @@ import { RulesModal, useRulesModal } from '../UI/RulesModal';
 import { TestMode } from './TestMode';
 import { soundEngine } from '../../utils/soundEngine';
 import { TutorialOverlay } from '../Tutorial/TutorialOverlay';
-import { useStoryStore } from '../../stores/storyStore';
+import { useStoryStore, nextChapter } from '../../stores/storyStore';
 
 type GameMode = 'solo' | 'local';
 type AIDifficulty = 'easy' | 'medium' | 'hard';
@@ -63,7 +63,17 @@ function FlaskIcon({ size = 16 }: { size?: number }) {
   );
 }
 
+const CHAPTER_LABELS: Record<string, string> = {
+  prologue: 'Prologue', nullhaven: 'Chapter 1', clockwork: 'Chapter 2',
+  delta: 'Chapter 3', hailstone: 'Chapter 4', inn: 'Chapter 5',
+  sands: 'Chapter 6', gameshow: 'Chapter 7', wilds: 'Chapter 8',
+  pascal: 'Chapter 9', climb: 'Chapter 10', showdown: 'Finale',
+};
+
 export function SetupScreen({ onStartGame }: SetupScreenProps) {
+  const storyProgress = useStoryStore((s) => s.progress);
+  const resumeAt = nextChapter(storyProgress);
+  const storyStarted = storyProgress.completedChapters.length > 0;
   const [gameMode, setGameMode] = useState<GameMode | null>(null);
   const [playerCount, setPlayerCount] = useState(2);
   const rulesModal = useRulesModal();
@@ -174,7 +184,14 @@ export function SetupScreen({ onStartGame }: SetupScreenProps) {
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
               <path d="M9 8h6M9 12h4" />
             </svg>
-            Story Mode
+            <span className="flex flex-col items-start leading-tight">
+              <span>Story Mode</span>
+              {storyStarted && (
+                <span className="text-[11px] opacity-80" style={{ fontFamily: 'var(--font-body)', letterSpacing: '0.04em' }}>
+                  Continue · {CHAPTER_LABELS[resumeAt] ?? resumeAt}
+                </span>
+              )}
+            </span>
             <span
               className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full text-[10px] font-bold"
               style={{

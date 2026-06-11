@@ -14,6 +14,7 @@ import {
 import { clockAnswer, caesarEncode, caesarDecode, houseAt } from './storyLogic';
 import { useAmbient } from './AmbientBubble';
 import { ChapterTitle } from './ChapterTitle';
+import { ChapterComplete } from './ChapterComplete';
 
 // ============================================================
 //  Chapter 2 — The Clockwork Commons.
@@ -472,7 +473,7 @@ const OUTRO: DialogueLine[] = [
 ];
 
 // --- Main scene -------------------------------------------------------------------------------------
-type Phase = 'title' | 'intro' | 'quest' | 'cipherIntro' | 'cipher' | 'outro';
+type Phase = 'title' | 'intro' | 'quest' | 'cipherIntro' | 'cipher' | 'outro' | 'complete';
 
 export function ClockworkScene() {
   const [phase, setPhase] = useState<Phase>('title');
@@ -658,9 +659,12 @@ export function ClockworkScene() {
           lines={OUTRO}
           onComplete={() => {
             completeChapter('clockwork', { companion: 'hours' });
-            useStoryStore.getState().goToChapter('delta');
+            setPhase('complete');
           }}
         />
+      )}
+      {phase === 'complete' && (
+        <ChapterComplete chapterTitle="The Clockwork Commons" companion="hours" onContinue={() => useStoryStore.getState().goToChapter('delta')} />
       )}
     </div>
   );

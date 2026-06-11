@@ -6,6 +6,7 @@ import { useStoryStore } from '../../stores/storyStore';
 import { DialogueScene, type DialogueLine } from './DialogueScene';
 import { useAmbient } from './AmbientBubble';
 import { ChapterTitle } from './ChapterTitle';
+import { ChapterComplete } from './ChapterComplete';
 import { LOW_PERF } from '../../utils/perf';
 import {
   useMovementRefs, useKeyboardMovement, isTouchDevice,
@@ -404,7 +405,7 @@ const OUTRO: DialogueLine[] = [
 ];
 
 // --- Main scene ---------------------------------------------------------------------------
-type Phase = 'title' | 'intro' | 'explore' | 'outro';
+type Phase = 'title' | 'intro' | 'explore' | 'outro' | 'complete';
 
 export function DeltaScene() {
   const [phase, setPhase] = useState<Phase>('title');
@@ -677,9 +678,12 @@ export function DeltaScene() {
           lines={OUTRO}
           onComplete={() => {
             completeChapter('delta', { companion: 'two' });
-            useStoryStore.getState().goToChapter('hailstone');
+            setPhase('complete');
           }}
         />
+      )}
+      {phase === 'complete' && (
+        <ChapterComplete chapterTitle="The Doubling Delta" companion="two" onContinue={() => useStoryStore.getState().goToChapter('hailstone')} />
       )}
     </div>
   );

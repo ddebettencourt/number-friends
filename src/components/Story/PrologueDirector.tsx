@@ -79,6 +79,26 @@ export function PrologueDirector() {
             />
           ))}
 
+          {/* you, tumbling */}
+          <motion.div
+            className="absolute left-1/2 top-[34%]"
+            style={{ width: 30, height: 52, marginLeft: -15 }}
+            animate={{ rotate: [0, 360], x: [-14, 14, -14], y: [0, 22, 0] }}
+            transition={{
+              rotate: { duration: 2.6, repeat: Infinity, ease: 'linear' },
+              x: { duration: 3.4, repeat: Infinity, ease: 'easeInOut' },
+              y: { duration: 2.2, repeat: Infinity, ease: 'easeInOut' },
+            }}
+          >
+            <div style={{
+              width: 30, height: 44, borderRadius: 15,
+              background: 'linear-gradient(160deg, #F06B75, #C42B3D)',
+              boxShadow: '0 0 22px rgba(232, 72, 85, 0.45)',
+            }} />
+            <div style={{ position: 'absolute', top: 9, left: 7, width: 5, height: 7, borderRadius: 3, background: '#fff' }} />
+            <div style={{ position: 'absolute', top: 9, left: 18, width: 5, height: 7, borderRadius: 3, background: '#fff' }} />
+          </motion.div>
+
           {/* a faint, far-below glow: the marsh, approaching */}
           <motion.div
             className="absolute left-1/2 top-[72%] -translate-x-1/2 rounded-full pointer-events-none"

@@ -7,6 +7,7 @@ import { useStoryStore } from '../../stores/storyStore';
 import { DialogueScene, type DialogueLine } from './DialogueScene';
 import { useAmbient } from './AmbientBubble';
 import { ChapterTitle } from './ChapterTitle';
+import { ChapterComplete } from './ChapterComplete';
 import { makeCloudTexture } from '../ImmersiveBoard/proceduralTextures';
 import { LOW_PERF } from '../../utils/perf';
 import {
@@ -381,7 +382,7 @@ function FacingWatcher({ refs, active, getCandidates, onFaced }: {
 }
 
 // --- Main scene -----------------------------------------------------------------------
-type ScenePhase = 'title' | 'intro' | 'explore' | 'outro';
+type ScenePhase = 'title' | 'intro' | 'explore' | 'outro' | 'complete';
 
 export function NullhavenScene() {
   const [phase, setPhase] = useState<ScenePhase>('title');
@@ -713,9 +714,12 @@ export function NullhavenScene() {
           lines={OUTRO}
           onComplete={() => {
             completeChapter('nullhaven', { companion: 'zero', flawless: fails === 0 });
-            useStoryStore.getState().goToChapter('clockwork');
+            setPhase('complete');
           }}
         />
+      )}
+      {phase === 'complete' && (
+        <ChapterComplete chapterTitle="Nullhaven, the Mirror Marsh" companion="zero" onContinue={() => useStoryStore.getState().goToChapter('clockwork')} />
       )}
     </div>
   );

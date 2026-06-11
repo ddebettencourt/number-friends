@@ -82,9 +82,11 @@ function saveProgress(progress: StoryProgress) {
 
 /** The chapter a returning player should resume at. */
 export function nextChapter(progress: StoryProgress): StoryChapterId {
+  // Built-chapter order first; optional/unbuilt lands later so resume
+  // always points at real content.
   const order: StoryChapterId[] = [
-    'prologue', 'nullhaven', 'clockwork', 'delta', 'pascal', 'hailstone',
-    'inn', 'sands', 'gameshow', 'wilds', 'climb', 'showdown',
+    'prologue', 'nullhaven', 'clockwork', 'delta', 'hailstone',
+    'inn', 'sands', 'gameshow', 'wilds', 'pascal', 'climb', 'showdown',
   ];
   for (const ch of order) {
     if (!progress.completedChapters.includes(ch)) return ch;
